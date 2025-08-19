@@ -1,0 +1,5 @@
+{
+  "name": "AI Story-to-Book Generator",
+  "description": "An AI-powered web application that transforms a single text prompt into a complete, illustrated book, ready for publishing.",
+  "requestFramePermissions": []
+}
