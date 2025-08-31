@@ -22,3 +22,30 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI Generated Content
+*.ai-generated
+*-generated.*
+generated/
+ai-output/
+claude-output/
+gemini-output/
+
+# Claude files
+CLAUDE.md
+.claude/
+claude-*
+*.claude
+claude_*
+
+# Gemini files
+.gemini/
+gemini-*
+*.gemini
+gemini_*
+GEMINI.md
+
+# Temporary AI files
+temp-ai/
+ai-temp/
+.ai-cache/
