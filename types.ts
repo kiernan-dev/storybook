@@ -24,7 +24,7 @@ export interface AppState {
     step: AppStep;
     isLoading: boolean;
     error: string | null;
-    theme: 'light' | 'dark' | 'system';
+    theme: 'flash-era' | 'flash-era-light';
 }
 
 export type Action =
@@ -35,7 +35,7 @@ export type Action =
     | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'SET_IMAGE_URL'; payload: { chapterId: string; url: string } }
     | { type: 'SET_GENERATING_IMAGE'; payload: { chapterId: string; isGenerating: boolean } }
-    | { type: 'SET_THEME'; payload: 'light' | 'dark' | 'system' };
+    | { type: 'SET_THEME'; payload: 'flash-era' | 'flash-era-light' };
 
 export enum Genre {
     FANTASY = 'Fantasy',

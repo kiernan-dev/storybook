@@ -14,9 +14,9 @@ const ThemeToggle: React.FC = () => {
     const { state, dispatch } = useStory();
 
     const toggleTheme = () => {
-        const themes = ['light', 'dark', 'system'];
+        const themes = ['flash-era', 'flash-era-light'];
         const currentIndex = themes.indexOf(state.theme);
-        const nextTheme = themes[(currentIndex + 1) % themes.length] as 'light' | 'dark' | 'system';
+        const nextTheme = themes[(currentIndex + 1) % themes.length] as 'flash-era' | 'flash-era-light';
         dispatch({ type: 'SET_THEME', payload: nextTheme });
     };
 

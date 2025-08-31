@@ -7,7 +7,7 @@ const initialState: AppState = {
     step: AppStep.PROMPT,
     isLoading: false,
     error: null,
-    theme: 'system',
+    theme: 'flash-era',
 };
 
 const storyReducer = (state: AppState, action: Action): AppState => {
@@ -75,16 +75,13 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }, []);
 
     useEffect(() => {
-        if (state.theme === 'system') {
-            const mql = window.matchMedia('(prefers-color-scheme: dark)');
-            const handleThemeChange = (e: MediaQueryListEvent) => {
-                document.documentElement.classList.toggle('dark', e.matches);
-            };
-            document.documentElement.classList.toggle('dark', mql.matches);
-            mql.addEventListener('change', handleThemeChange);
-            return () => mql.removeEventListener('change', handleThemeChange);
-        } else {
-            document.documentElement.classList.toggle('dark', state.theme === 'dark');
+        // Remove all theme classes
+        document.documentElement.classList.remove('flash-era', 'flash-era-light');
+        
+        if (state.theme === 'flash-era') {
+            document.documentElement.classList.add('flash-era');
+        } else if (state.theme === 'flash-era-light') {
+            document.documentElement.classList.add('flash-era-light');
         }
     }, [state.theme]);
 
