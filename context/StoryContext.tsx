@@ -1,6 +1,7 @@
 
 import React, { createContext, useReducer, Dispatch, useEffect, ReactNode } from 'react';
 import { AppState, Action, AppStep, Story } from '../types';
+import { saveStory } from '../services/database';
 
 const initialState: AppState = {
     story: null,
@@ -51,6 +52,8 @@ const storyReducer = (state: AppState, action: Action): AppState => {
         case 'SET_THEME':
             localStorage.setItem('theme', action.payload);
             return { ...state, theme: action.payload };
+        case 'SAVE_STORY_SUCCESS':
+            return { ...state };
         default:
             return state;
     }
@@ -59,13 +62,32 @@ const storyReducer = (state: AppState, action: Action): AppState => {
 export const StoryContext = createContext<{
     state: AppState;
     dispatch: Dispatch<Action>;
+    saveCurrentStory: () => Promise<number | null>;
 }>({
     state: initialState,
     dispatch: () => null,
+    saveCurrentStory: async () => null,
 });
 
 export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(storyReducer, initialState);
+
+    const saveCurrentStory = async (): Promise<number | null> => {
+        if (!state.story) {
+            console.warn('No story to save');
+            return null;
+        }
+
+        try {
+            const storyId = await saveStory(state.story);
+            dispatch({ type: 'SAVE_STORY_SUCCESS', payload: { storyId } });
+            return storyId;
+        } catch (error) {
+            console.error('Failed to save story:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to save story. Please try again.' });
+            return null;
+        }
+    };
 
     useEffect(() => {
         const localTheme = localStorage.getItem('theme') as AppState['theme'] | null;
@@ -85,8 +107,16 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
     }, [state.theme]);
 
+    // Auto-save when user reaches preview step
+    useEffect(() => {
+        if (state.step === AppStep.PREVIEW && state.story && !state.isLoading) {
+            console.log('Auto-saving story on preview...');
+            saveCurrentStory();
+        }
+    }, [state.step, state.story, state.isLoading]);
+
     return (
-        <StoryContext.Provider value={{ state, dispatch }}>
+        <StoryContext.Provider value={{ state, dispatch, saveCurrentStory }}>
             {children}
         </StoryContext.Provider>
     );

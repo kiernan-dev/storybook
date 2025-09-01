@@ -35,7 +35,8 @@ export type Action =
     | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'SET_IMAGE_URL'; payload: { chapterId: string; url: string } }
     | { type: 'SET_GENERATING_IMAGE'; payload: { chapterId: string; isGenerating: boolean } }
-    | { type: 'SET_THEME'; payload: 'flash-era' | 'flash-era-light' };
+    | { type: 'SET_THEME'; payload: 'flash-era' | 'flash-era-light' }
+    | { type: 'SAVE_STORY_SUCCESS'; payload: { storyId: number } };
 
 export enum Genre {
     FANTASY = 'Fantasy',

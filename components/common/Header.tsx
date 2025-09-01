@@ -3,11 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { APP_NAME } from '../../constants';
 import ThemeToggle from '../ui/ThemeToggle';
 import ApiStatus from '../ui/ApiStatus';
+import SavedStories from '../ui/SavedStories';
+import Button from '../ui/Button';
 import { checkApiConnection } from '../../services/geminiService';
 
 const Header: React.FC = () => {
     const [isApiConnected, setIsApiConnected] = useState<boolean>(false);
     const [isChecking, setIsChecking] = useState<boolean>(true);
+    const [showSavedStories, setShowSavedStories] = useState<boolean>(false);
 
     useEffect(() => {
         const checkConnection = async () => {
@@ -30,6 +33,7 @@ const Header: React.FC = () => {
     }, []);
 
     return (
+    <>
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
                 <div className="flex h-16 items-center justify-between">
@@ -40,12 +44,25 @@ const Header: React.FC = () => {
                     </a>
                     
                     <div className="flex items-center space-x-4">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setShowSavedStories(true)}
+                            className="text-sm font-medium"
+                        >
+                            My Stories
+                        </Button>
                         {!isChecking && <ApiStatus isConnected={isApiConnected} />}
                         <ThemeToggle />
                     </div>
                 </div>
             </div>
         </header>
+        
+        {showSavedStories && (
+            <SavedStories onClose={() => setShowSavedStories(false)} />
+        )}
+    </>
     );
 };
 

@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { AppStep } from '../../types';
 import Button from '../ui/Button';
+import Spinner from '../ui/Spinner';
 
 const PreviewView: React.FC = () => {
-    const { state, dispatch } = useStory();
+    const { state, dispatch, saveCurrentStory } = useStory();
+    const [isSaving, setIsSaving] = useState(false);
 
     if (!state.story) {
         return (
@@ -28,12 +30,39 @@ const PreviewView: React.FC = () => {
         dispatch({ type: 'SET_STEP', payload: AppStep.EDITING });
     };
 
+    const handleSaveStory = async () => {
+        setIsSaving(true);
+        try {
+            const storyId = await saveCurrentStory();
+            if (storyId) {
+                alert(`Story "${state.story?.title}" saved successfully!`);
+            }
+        } catch (error) {
+            console.error('Failed to save story:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">Book Preview</h1>
                 <div className="space-x-2">
-                     <Button variant="outline" onClick={handleBackToEdit}>Back to Editor</Button>
+                    <Button variant="outline" onClick={handleBackToEdit}>Back to Editor</Button>
+                    <Button 
+                        variant="outline" 
+                        onClick={handleSaveStory}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <>
+                                <Spinner className="mr-2 h-4 w-4" /> Saving...
+                            </>
+                        ) : (
+                            'Save Story'
+                        )}
+                    </Button>
                     <Button onClick={handleDownload}>Download KDP-Ready PDF</Button>
                 </div>
             </div>
