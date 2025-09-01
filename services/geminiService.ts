@@ -2,13 +2,35 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { Story, Chapter, Genre, Audience } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+if (!API_KEY || API_KEY === 'undefined') {
+    throw new Error("VITE_GEMINI_API_KEY environment variable not set");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+export const checkApiConnection = async (): Promise<boolean> => {
+    try {
+        console.log("Checking API connection with key:", API_KEY ? `${API_KEY.substring(0, 10)}...` : 'undefined');
+        
+        // Simple test call to check API connectivity
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: "Hello",
+            config: {
+                maxOutputTokens: 10,
+            },
+        });
+        
+        console.log("API connection check successful:", response.text);
+        // If we get here without an error, the API is connected
+        return true;
+    } catch (error) {
+        console.error("API connection check failed:", error);
+        return false;
+    }
+};
 
 const storySchema = {
     type: Type.OBJECT,

@@ -37,53 +37,82 @@ const PromptView: React.FC = () => {
     };
 
     return (
-        <Card className="max-w-3xl mx-auto">
-            <CardHeader>
-                <CardTitle>Create Your Story</CardTitle>
-                <CardDescription>Start by telling the AI what your story is about. The more detail, the better!</CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <label htmlFor="prompt" className="text-sm font-medium">Story Prompt</label>
-                        <Textarea
-                            id="prompt"
-                            placeholder="e.g., A brave knight who is afraid of the dark..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            rows={5}
-                            disabled={state.isLoading}
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label htmlFor="genre" className="text-sm font-medium">Genre</label>
-                            <Select id="genre" value={genre} onChange={(e) => setGenre(e.target.value as Genre)} disabled={state.isLoading}>
-                                {GENRE_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
-                            </Select>
+        <div className="w-full">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl sm:text-4xl font-bold mb-3">Create Your Story</h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Start by telling the AI what your story is about. The more detail, the better!
+                </p>
+            </div>
+            
+            <Card className="max-w-3xl mx-auto">
+                <form onSubmit={handleSubmit}>
+                    <CardContent className="space-y-8 p-8">
+                        <div className="space-y-3">
+                            <label htmlFor="prompt" className="text-base font-medium block">Story Prompt</label>
+                            <Textarea
+                                id="prompt"
+                                placeholder="e.g., A brave knight who is afraid of the dark..."
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                rows={6}
+                                disabled={state.isLoading}
+                                className="text-base resize-none"
+                            />
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="audience" className="text-sm font-medium">Target Audience</label>
-                            <Select id="audience" value={audience} onChange={(e) => setAudience(e.target.value as Audience)} disabled={state.isLoading}>
-                                {AUDIENCE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                            </Select>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label htmlFor="genre" className="text-base font-medium block">Genre</label>
+                                <Select 
+                                    id="genre" 
+                                    value={genre} 
+                                    onChange={(e) => setGenre(e.target.value as Genre)} 
+                                    disabled={state.isLoading}
+                                    className="text-base"
+                                >
+                                    {GENRE_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
+                                </Select>
+                            </div>
+                            <div className="space-y-3">
+                                <label htmlFor="audience" className="text-base font-medium block">Target Audience</label>
+                                <Select 
+                                    id="audience" 
+                                    value={audience} 
+                                    onChange={(e) => setAudience(e.target.value as Audience)} 
+                                    disabled={state.isLoading}
+                                    className="text-base"
+                                >
+                                    {AUDIENCE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                                </Select>
+                            </div>
                         </div>
-                    </div>
-                    {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-                </CardContent>
-                <CardFooter>
-                    <Button type="submit" className="w-full" disabled={state.isLoading}>
-                        {state.isLoading ? (
-                            <>
-                                <Spinner className="mr-2 h-4 w-4" /> Generating Story...
-                            </>
-                        ) : (
-                            'Generate Story'
+                        
+                        {state.error && (
+                            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                                <p className="text-sm text-destructive font-medium">{state.error}</p>
+                            </div>
                         )}
-                    </Button>
-                </CardFooter>
-            </form>
-        </Card>
+                        
+                        <div className="pt-4">
+                            <Button 
+                                type="submit" 
+                                className="w-full h-12 text-base font-medium" 
+                                disabled={state.isLoading}
+                            >
+                                {state.isLoading ? (
+                                    <>
+                                        <Spinner className="mr-3 h-5 w-5" /> Generating Story...
+                                    </>
+                                ) : (
+                                    'Generate Story'
+                                )}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </form>
+            </Card>
+        </div>
     );
 };
 
