@@ -221,12 +221,12 @@ export const seedStoryPrompts = async (): Promise<void> => {
     try {
         const existingCount = await db.storyPrompts.count();
         
-        // Check if we have the old small dataset and need to upgrade
-        if (existingCount > 0 && existingCount < 100) {
-            console.log(`Upgrading prompts database from ${existingCount} to 184+ prompts`);
+        // Check if we have the old dataset and need to upgrade
+        if (existingCount > 0 && existingCount !== 123) {
+            console.log(`Upgrading prompts database from ${existingCount} to 123 prompts (removed inappropriate combinations)`);
             await db.storyPrompts.clear();
-        } else if (existingCount >= 100) {
-            return; // Already has new prompts
+        } else if (existingCount === 123) {
+            return; // Already has cleaned prompts
         }
 
         const prompts: Omit<StoryPrompt, 'id'>[] = [
@@ -326,21 +326,6 @@ export const seedStoryPrompts = async (): Promise<void> => {
             { prompt: "A crime scene cleaner notices patterns that the police have missed across multiple cases", genre: Genre.MYSTERY, audience: Audience.ADULT, tags: ['crime scene cleaner', 'patterns', 'police', 'serial cases'] },
             { prompt: "An insurance investigator discovers that impossible accidents aren't accidents at all", genre: Genre.MYSTERY, audience: Audience.ADULT, tags: ['insurance investigator', 'impossible accidents', 'conspiracy', 'murder'] },
 
-            // ROMANCE - CHILDREN (3-8) - Age-appropriate friendship/caring themes
-            { prompt: "A little boy learns to show he cares by helping his friend feel better after moving to a new town", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['caring', 'friendship', 'helping', 'moving'] },
-            { prompt: "Two young friends work together to plan the perfect surprise party for their teacher", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['friends', 'teamwork', 'surprise', 'teacher'] },
-            { prompt: "A child learns that the best way to show love is through kind actions and thoughtful words", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['love', 'kindness', 'actions', 'words'] },
-            { prompt: "Young neighbors become best friends by sharing their favorite things with each other", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['neighbors', 'sharing', 'friendship', 'favorites'] },
-            { prompt: "A shy child learns to express feelings by writing friendship notes to classmates", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['shy', 'expressing feelings', 'notes', 'friendship'] },
-            { prompt: "Two children learn that caring for someone means being there during both happy and sad times", genre: Genre.ROMANCE, audience: Audience.CHILDREN, tags: ['caring', 'being there', 'emotions', 'support'] },
-
-            // ROMANCE - PRE-TEEN (9-12) - First crushes, innocent romance
-            { prompt: "A middle schooler navigates their first crush while trying to save the school dance", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['first crush', 'school dance', 'middle school', 'navigation'] },
-            { prompt: "Two rival students are forced to work together and discover they're not so different after all", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['rivals', 'forced cooperation', 'discovery', 'similarities'] },
-            { prompt: "A young matchmaker learns about love while trying to help their teacher find happiness", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['matchmaker', 'teacher', 'helping', 'happiness'] },
-            { prompt: "Pen pals who have never met finally get the chance to meet in person", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['pen pals', 'meeting', 'correspondence', 'friendship'] },
-            { prompt: "A student council election becomes complicated when best friends run against each other", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['student council', 'best friends', 'election', 'competition'] },
-            { prompt: "Two young musicians discover harmony in both music and friendship", genre: Genre.ROMANCE, audience: Audience.PRE_TEEN, tags: ['musicians', 'harmony', 'music', 'friendship'] },
 
             // ROMANCE - TEEN (13-18)
             { prompt: "Two high school rivals are forced to work together on the school newspaper and find unexpected chemistry", genre: Genre.ROMANCE, audience: Audience.TEEN, tags: ['high school', 'rivals', 'newspaper', 'chemistry'] },
@@ -398,13 +383,6 @@ export const seedStoryPrompts = async (): Promise<void> => {
             { prompt: "A little mouse who's afraid of cats learns that fear can be overcome with understanding", genre: Genre.CHILDREN, audience: Audience.CHILDREN, tags: ['mouse', 'cats', 'fear', 'understanding'] },
             { prompt: "A child who feels too small discovers that size doesn't determine your ability to help others", genre: Genre.CHILDREN, audience: Audience.CHILDREN, tags: ['small', 'size', 'helping others', 'ability'] },
 
-            // CHILDREN'S BOOK - PRE-TEEN (9-12) - More complex themes
-            { prompt: "A child learns about responsibility by taking care of a classroom pet", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['responsibility', 'classroom pet', 'care', 'learning'] },
-            { prompt: "A young environmentalist rallies their community to save a local park", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['environmentalist', 'community', 'park', 'activism'] },
-            { prompt: "A kid who struggles with math discovers that everyone learns differently", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['math struggles', 'learning differences', 'self-acceptance', 'education'] },
-            { prompt: "A child from a blended family learns that families come in all shapes and sizes", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['blended family', 'family types', 'acceptance', 'diversity'] },
-            { prompt: "A young entrepreneur starts a neighborhood business to help their community", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['entrepreneur', 'neighborhood business', 'community help', 'initiative'] },
-            { prompt: "A child who feels different learns to celebrate what makes them unique", genre: Genre.CHILDREN, audience: Audience.PRE_TEEN, tags: ['feeling different', 'celebrating uniqueness', 'self-acceptance', 'individuality'] },
 
             // Cross-genre prompts for any combination
             { prompt: "An unlikely friendship between two very different characters changes both their lives", genre: 'any' as Genre, audience: 'any' as Audience, tags: ['friendship', 'different', 'change'] },

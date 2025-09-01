@@ -19,6 +19,18 @@ const PromptView: React.FC = () => {
     const [genre, setGenre] = useState<Genre>(Genre.FANTASY);
     const [audience, setAudience] = useState<Audience>(Audience.CHILDREN);
 
+    const handleGenreChange = (selectedGenre: Genre) => {
+        setGenre(selectedGenre);
+        // Auto-switch to appropriate audience if Romance is selected and current audience is inappropriate
+        if (selectedGenre === Genre.ROMANCE && (audience === Audience.CHILDREN || audience === Audience.PRE_TEEN)) {
+            setAudience(Audience.ADULT);
+        }
+        // Auto-switch to appropriate audience if Childrens Book is selected and current audience is inappropriate
+        if (selectedGenre === Genre.CHILDREN && (audience === Audience.ADULT || audience === Audience.TEEN)) {
+            setAudience(Audience.CHILDREN);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!prompt.trim()) {
@@ -79,7 +91,7 @@ const PromptView: React.FC = () => {
                                 <Select 
                                     id="genre" 
                                     value={genre} 
-                                    onChange={(e) => setGenre(e.target.value as Genre)} 
+                                    onChange={(e) => handleGenreChange(e.target.value as Genre)} 
                                     disabled={state.isLoading}
                                     className="text-base"
                                 >
@@ -95,7 +107,18 @@ const PromptView: React.FC = () => {
                                     disabled={state.isLoading}
                                     className="text-base"
                                 >
-                                    {AUDIENCE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                                    {AUDIENCE_OPTIONS.map(a => (
+                                        <option 
+                                            key={a} 
+                                            value={a}
+                                            disabled={
+                                                (genre === Genre.ROMANCE && (a === Audience.CHILDREN || a === Audience.PRE_TEEN)) ||
+                                                (genre === Genre.CHILDREN && (a === Audience.ADULT || a === Audience.TEEN))
+                                            }
+                                        >
+                                            {a}
+                                        </option>
+                                    ))}
                                 </Select>
                             </div>
                         </div>
