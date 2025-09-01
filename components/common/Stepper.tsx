@@ -7,9 +7,9 @@ interface StepperProps {
 }
 
 const steps = [
-    { id: AppStep.PROMPT, name: '1. Create Story' },
-    { id: AppStep.EDITING, name: '2. Edit & Illustrate' },
-    { id: AppStep.PREVIEW, name: '3. Preview & Export' },
+    { id: AppStep.PROMPT, name: 'Create Story' },
+    { id: AppStep.EDITING, name: 'Edit & Illustrate' },
+    { id: AppStep.PREVIEW, name: 'Preview & Export' },
 ];
 
 const Stepper: React.FC<StepperProps> = ({ currentStep }) => {
@@ -19,10 +19,6 @@ const Stepper: React.FC<StepperProps> = ({ currentStep }) => {
                 <ol role="list" className="flex items-center justify-center">
                     {steps.map((step, stepIdx) => (
                         <li key={step.name} className={`relative ${stepIdx !== steps.length - 1 ? 'pr-16 sm:pr-24 md:pr-32' : ''}`}>
-                            {stepIdx !== steps.length - 1 && (
-                                <div className="absolute top-5 left-10 sm:left-14 md:left-18 w-16 sm:w-24 md:w-32 h-0.5 bg-border" aria-hidden="true" />
-                            )}
-                            
                             <div className="flex flex-col items-center space-y-3">
                                 {step.id < currentStep ? (
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">

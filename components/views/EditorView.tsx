@@ -79,8 +79,8 @@ const EditorView: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-8">
-            <aside className="w-full md:w-1/4">
+        <div className="flex flex-col md:flex-row gap-8 p-4 md:p-0">
+            <aside className="w-full md:w-1/4 bg-card/50 rounded-lg p-6 border border-border/20">
                 <h2 className="text-2xl font-bold mb-4">{state.story.title}</h2>
                 <nav className="space-y-2">
                     {state.story.chapters.map(chapter => (
@@ -102,7 +102,7 @@ const EditorView: React.FC = () => {
                 </Button>
             </aside>
 
-            <main className="w-full md:w-3/4">
+            <main className="w-full md:w-3/4 bg-card/50 rounded-lg p-6 border border-border/20">
                 {activeChapter ? (
                     <ChapterEditor chapter={activeChapter} />
                 ) : (

@@ -51,12 +51,14 @@ const PromptView: React.FC = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
                                 <label htmlFor="prompt" className="text-base font-medium block">Story Prompt</label>
-                                <MagicPromptButton
-                                    genre={genre}
-                                    audience={audience}
-                                    onPromptGenerated={setPrompt}
-                                    disabled={state.isLoading}
-                                />
+                                <div className="mt-4">
+                                    <MagicPromptButton
+                                        genre={genre}
+                                        audience={audience}
+                                        onPromptGenerated={setPrompt}
+                                        disabled={state.isLoading}
+                                    />
+                                </div>
                             </div>
                             <Textarea
                                 id="prompt"

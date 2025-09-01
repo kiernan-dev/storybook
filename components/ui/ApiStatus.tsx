@@ -20,7 +20,7 @@ const ApiStatus: React.FC<ApiStatusProps> = ({ isConnected, className = '' }) =>
                 text-xs font-medium
                 ${isConnected ? 'text-green-600' : 'text-red-600'}
             `}>
-                {isConnected ? 'LIVE API' : 'API ERROR'}
+                {isConnected ? 'Connected' : 'API ERROR'}
             </span>
         </div>
     );

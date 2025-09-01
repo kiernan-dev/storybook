@@ -32,10 +32,10 @@ const AppContent: React.FC = () => {
     return (
         <div>
             <Header />
-            <main>
-                <div>
+            <main className="px-4 md:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto py-8">
                     <Stepper currentStep={state.step} />
-                    <div>
+                    <div className="mt-8">
                         {renderContent()}
                     </div>
                 </div>
