@@ -75,25 +75,25 @@
         --radius: 0.5rem;
       }
       .flash-era {
-        --background: 290 30% 5%;
-        --foreground: 210 30% 85%;
-        --card: 290 40% 8%;
-        --card-foreground: 210 25% 90%;
-        --popover: 290 40% 8%;
-        --popover-foreground: 210 25% 90%;
-        --primary: 180 60% 55%;
-        --primary-foreground: 290 30% 5%;
-        --secondary: 270 40% 35%;
-        --secondary-foreground: 210 25% 90%;
-        --muted: 290 30% 12%;
-        --muted-foreground: 210 15% 65%;
-        --accent: 200 50% 60%;
-        --accent-foreground: 290 30% 5%;
-        --destructive: 0 70% 55%;
-        --destructive-foreground: 290 30% 5%;
-        --border: 290 25% 18%;
-        --input: 290 25% 15%;
-        --ring: 180 60% 55%;
+        --background: 270 50% 15%;
+        --foreground: 180 100% 85%;
+        --card: 270 40% 20%;
+        --card-foreground: 180 100% 90%;
+        --popover: 270 40% 20%;
+        --popover-foreground: 180 100% 90%;
+        --primary: 180 100% 50%;
+        --primary-foreground: 270 50% 10%;
+        --secondary: 300 80% 60%;
+        --secondary-foreground: 270 50% 10%;
+        --muted: 270 30% 25%;
+        --muted-foreground: 180 60% 70%;
+        --accent: 300 100% 70%;
+        --accent-foreground: 270 50% 10%;
+        --destructive: 0 80% 60%;
+        --destructive-foreground: 270 50% 10%;
+        --border: 270 30% 30%;
+        --input: 270 40% 18%;
+        --ring: 180 100% 50%;
       }
       .flash-era-light {
         --background: 290 30% 95%;
@@ -123,11 +123,24 @@
       
       .flash-era body, .flash-era .min-h-screen {
         background: linear-gradient(135deg, 
-          hsl(290 30% 5%) 0%, 
-          hsl(280 35% 8%) 25%, 
-          hsl(270 25% 6%) 50%, 
-          hsl(290 30% 4%) 75%, 
-          hsl(300 20% 7%) 100%);
+          hsl(270 80% 8%) 0%, 
+          hsl(280 70% 12%) 25%, 
+          hsl(260 60% 10%) 50%, 
+          hsl(290 80% 15%) 75%, 
+          hsl(270 70% 8%) 100%);
+        background-attachment: fixed;
+      }
+      
+      .flash-era .bg-card\/50 {
+        background: linear-gradient(145deg, 
+          hsl(270 40% 20% / 0.9), 
+          hsl(280 50% 25% / 0.7)
+        );
+        border: 1px solid hsl(270 30% 30% / 0.6);
+        backdrop-filter: blur(8px);
+        box-shadow: 
+          0 8px 32px hsl(270 80% 5% / 0.4),
+          inset 0 1px 0 hsl(180 100% 50% / 0.1);
       }
       
       .flash-era .container {
