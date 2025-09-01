@@ -11,6 +11,7 @@ const Header: React.FC = () => {
     const [isApiConnected, setIsApiConnected] = useState<boolean>(false);
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [showSavedStories, setShowSavedStories] = useState<boolean>(false);
+    const [showMobileMenu, setShowMobileMenu] = useState<boolean>(false);
 
     useEffect(() => {
         const checkConnection = async () => {
@@ -46,7 +47,8 @@ const Header: React.FC = () => {
                         {!isChecking && <ApiStatus isConnected={isApiConnected} />}
                     </div>
                     
-                    <div className="flex items-center space-x-4">
+                    {/* Desktop menu */}
+                    <div className="hidden md:flex items-center space-x-4">
                         <Button 
                             variant="ghost" 
                             size="sm" 
@@ -57,8 +59,45 @@ const Header: React.FC = () => {
                         </Button>
                         <ThemeToggle />
                     </div>
+
+                    {/* Mobile menu button */}
+                    <div className="md:hidden">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            className="p-2"
+                        >
+                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showMobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                            </svg>
+                        </Button>
+                    </div>
                 </div>
             </div>
+
+            {/* Mobile menu dropdown */}
+            {showMobileMenu && (
+                <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur">
+                    <div className="container mx-auto px-4 py-4 space-y-3">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                                setShowSavedStories(true);
+                                setShowMobileMenu(false);
+                            }}
+                            className="w-full justify-start text-sm font-medium"
+                        >
+                            My Stories
+                        </Button>
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Theme</span>
+                            <ThemeToggle />
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
         
         {showSavedStories && (

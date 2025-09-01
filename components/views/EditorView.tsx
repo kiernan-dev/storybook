@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStory } from '../../hooks/useStory';
+import { useStepTransition } from '../../hooks/useStepTransition';
 import { Chapter, AppStep } from '../../types';
 import Button from '../ui/Button';
 import Textarea from '../ui/Textarea';
@@ -31,33 +32,41 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
 
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <div>
-                <h3 className="text-xl font-semibold mb-2">{chapter.title}</h3>
-                <Textarea
-                    value={chapter.content}
-                    onChange={handleContentChange}
-                    className="h-96 text-base"
-                />
-            </div>
-            <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="w-full aspect-square rounded-lg border border-dashed flex items-center justify-center bg-muted/40">
-                    {chapter.isGeneratingImage ? (
-                        <div className="flex flex-col items-center text-muted-foreground">
-                            <Spinner className="h-8 w-8"/>
-                            <p className="mt-2 text-sm">Illustrating scene...</p>
-                        </div>
-                    ) : chapter.imageUrl ? (
-                        <img src={chapter.imageUrl} alt={`Illustration for ${chapter.title}`} className="object-cover w-full h-full rounded-lg" />
-                    ) : (
-                        <div className="text-center text-muted-foreground">
-                            <p>No image generated yet.</p>
-                        </div>
-                    )}
+        <div className="space-y-4">
+            <h3 className="text-lg font-semibold">{chapter.title}</h3>
+            
+            {/* Mobile-optimized layout */}
+            <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
+                {/* Content editor */}
+                <div className="order-2 lg:order-1">
+                    <Textarea
+                        value={chapter.content}
+                        onChange={handleContentChange}
+                        className="h-32 sm:h-40 lg:h-64 text-sm resize-none"
+                        placeholder="Edit your chapter content..."
+                    />
                 </div>
-                <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} className="w-full">
-                    {chapter.isGeneratingImage ? <><Spinner className="mr-2 h-4 w-4" /> Generating...</> : "Generate Illustration"}
-                </Button>
+                
+                {/* Image area - more compact for mobile */}
+                <div className="order-1 lg:order-2 flex flex-col space-y-3">
+                    <div className="w-full h-32 sm:h-40 lg:h-48 lg:aspect-square rounded-lg border border-dashed flex items-center justify-center bg-muted/40">
+                        {chapter.isGeneratingImage ? (
+                            <div className="flex flex-col items-center text-muted-foreground">
+                                <Spinner className="h-6 w-6"/>
+                                <p className="mt-2 text-xs">Illustrating...</p>
+                            </div>
+                        ) : chapter.imageUrl ? (
+                            <img src={chapter.imageUrl} alt={`Illustration for ${chapter.title}`} className="object-cover w-full h-full rounded-lg" />
+                        ) : (
+                            <div className="text-center text-muted-foreground">
+                                <p className="text-xs">No image yet</p>
+                            </div>
+                        )}
+                    </div>
+                    <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} size="sm" className="w-full">
+                        {chapter.isGeneratingImage ? <><Spinner className="mr-2 h-3 w-3" /> Generating...</> : "Generate Illustration"}
+                    </Button>
+                </div>
             </div>
         </div>
     );
@@ -65,7 +74,8 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
 
 
 const EditorView: React.FC = () => {
-    const { state, dispatch } = useStory();
+    const { state } = useStory();
+    const { transitionToStep, isTransitioning } = useStepTransition();
     const [activeChapterId, setActiveChapterId] = useState<string | null>(state.story?.chapters[0]?.id || null);
 
     if (!state.story) {
@@ -75,40 +85,50 @@ const EditorView: React.FC = () => {
     const activeChapter = state.story.chapters.find(ch => ch.id === activeChapterId);
 
     const goToPreview = () => {
-        dispatch({ type: 'SET_STEP', payload: AppStep.PREVIEW });
+        transitionToStep(AppStep.PREVIEW);
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 p-4 md:p-0">
-            <aside className="w-full md:w-1/4 bg-card/50 rounded-lg p-6 border border-border/20">
-                <h2 className="text-2xl font-bold mb-4">{state.story.title}</h2>
-                <nav className="space-y-2">
-                    {state.story.chapters.map(chapter => (
-                        <button
-                            key={chapter.id}
-                            onClick={() => setActiveChapterId(chapter.id)}
-                            className={`w-full text-left p-3 rounded-md transition-colors ${
-                                activeChapterId === chapter.id
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'hover:bg-accent'
-                            }`}
-                        >
-                            {chapter.title}
-                        </button>
-                    ))}
-                </nav>
-                 <Button onClick={goToPreview} className="w-full mt-8">
-                    Go to Preview
+        <div className="flex flex-col space-y-4">
+            {/* Mobile-first header with story title and preview button */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-card/50 rounded-lg border border-border/20">
+                <h2 className="text-xl font-bold">{state.story.title}</h2>
+                <Button onClick={goToPreview} size="sm" className="w-full sm:w-auto" disabled={isTransitioning}>
+                    {isTransitioning ? (
+                        <>
+                            <Spinner className="mr-2 h-3 w-3" /> Saving...
+                        </>
+                    ) : (
+                        'Go to Preview'
+                    )}
                 </Button>
-            </aside>
+            </div>
 
-            <main className="w-full md:w-3/4 bg-card/50 rounded-lg p-6 border border-border/20">
+            {/* Mobile-friendly chapter tabs */}
+            <div className="flex overflow-x-auto gap-2 p-1 bg-card/50 rounded-lg border border-border/20">
+                {state.story.chapters.map(chapter => (
+                    <button
+                        key={chapter.id}
+                        onClick={() => setActiveChapterId(chapter.id)}
+                        className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeChapterId === chapter.id
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-accent'
+                        }`}
+                    >
+                        {chapter.title}
+                    </button>
+                ))}
+            </div>
+
+            {/* Mobile-optimized editor content */}
+            <div className="bg-card/50 rounded-lg p-4 border border-border/20">
                 {activeChapter ? (
                     <ChapterEditor chapter={activeChapter} />
                 ) : (
                     <p>Select a chapter to begin editing.</p>
                 )}
-            </main>
+            </div>
         </div>
     );
 };

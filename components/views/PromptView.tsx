@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStory } from '../../hooks/useStory';
+import { useStepTransition } from '../../hooks/useStepTransition';
 import { generateStory } from '../../services/geminiService';
 import { AppStep, Genre, Audience } from '../../types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/Card';
@@ -13,6 +14,7 @@ import { GENRE_OPTIONS, AUDIENCE_OPTIONS } from '../../constants';
 
 const PromptView: React.FC = () => {
     const { state, dispatch } = useStory();
+    const { transitionToStep } = useStepTransition();
     const [prompt, setPrompt] = useState('');
     const [genre, setGenre] = useState<Genre>(Genre.FANTASY);
     const [audience, setAudience] = useState<Audience>(Audience.CHILDREN);
@@ -29,7 +31,7 @@ const PromptView: React.FC = () => {
         try {
             const story = await generateStory(prompt, genre, audience, dispatch);
             dispatch({ type: 'SET_STORY', payload: story });
-            dispatch({ type: 'SET_STEP', payload: AppStep.EDITING });
+            transitionToStep(AppStep.EDITING);
         } catch (err) {
             const error = err instanceof Error ? err.message : 'An unknown error occurred';
             dispatch({ type: 'SET_ERROR', payload: error });

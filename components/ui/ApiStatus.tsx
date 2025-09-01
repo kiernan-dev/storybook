@@ -17,7 +17,7 @@ const ApiStatus: React.FC<ApiStatusProps> = ({ isConnected, className = '' }) =>
                 )}
             </div>
             <span className={`
-                text-xs font-medium
+                hidden md:inline text-xs font-medium
                 ${isConnected ? 'text-green-600' : 'text-red-600'}
             `}>
                 {isConnected ? 'Connected' : 'API ERROR'}

@@ -36,7 +36,9 @@ const AppContent: React.FC = () => {
                 <div className="max-w-7xl mx-auto py-8">
                     <Stepper currentStep={state.step} />
                     <div className="mt-8">
-                        {renderContent()}
+                        <div key={state.step} className="animate-fade-in">
+                            {renderContent()}
+                        </div>
                     </div>
                 </div>
             </main>

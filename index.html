@@ -108,7 +108,7 @@
         --secondary-foreground: 290 30% 95%;
         --muted: 290 20% 90%;
         --muted-foreground: 290 60% 40%;
-        --accent: 60 80% 40%;
+        --accent: 180 50% 50%;
         --accent-foreground: 290 30% 95%;
         --destructive: 0 80% 50%;
         --destructive-foreground: 290 30% 95%;
@@ -132,6 +132,22 @@
       
       .flash-era .container {
         backdrop-filter: blur(0.5px);
+      }
+
+      /* Step transition animations */
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-in {
+        animation: fade-in 0.4s ease-out forwards;
       }
     </style>
   <script type="importmap">
