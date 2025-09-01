@@ -9,19 +9,18 @@ const initialState: AppState = {
     isLoading: false,
     error: null,
     theme: 'flash-era',
-    loadingStep: 0,
 };
 
 const storyReducer = (state: AppState, action: Action): AppState => {
     switch (action.type) {
         case 'SET_STORY':
-            return { ...state, story: action.payload, isLoading: false, error: null, loadingStep: 0 };
+            return { ...state, story: action.payload, isLoading: false, error: null };
         case 'SET_STEP':
             return { ...state, step: action.payload };
         case 'SET_LOADING':
-            return { ...state, isLoading: action.payload, error: null, loadingStep: 0 };
+            return { ...state, isLoading: action.payload, error: null };
         case 'SET_ERROR':
-            return { ...state, error: action.payload, isLoading: false, loadingStep: 0 };
+            return { ...state, error: action.payload, isLoading: false };
         case 'UPDATE_CHAPTER':
             if (!state.story) return state;
             const updatedChapters = state.story.chapters.map(ch =>
@@ -55,8 +54,6 @@ const storyReducer = (state: AppState, action: Action): AppState => {
             return { ...state, theme: action.payload };
         case 'SAVE_STORY_SUCCESS':
             return { ...state };
-        case 'SET_LOADING_STEP':
-            return { ...state, loadingStep: action.payload };
         default:
             return state;
     }
@@ -83,6 +80,12 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         try {
             const storyId = await saveStory(state.story);
+            
+            // Update the story with the ID if it's a new story
+            if (!state.story.id) {
+                dispatch({ type: 'SET_STORY', payload: { ...state.story, id: storyId } });
+            }
+            
             dispatch({ type: 'SAVE_STORY_SUCCESS', payload: { storyId } });
             return storyId;
         } catch (error) {

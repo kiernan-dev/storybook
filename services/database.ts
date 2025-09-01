@@ -64,13 +64,28 @@ export const blobToDataURL = (blob: Blob): Promise<string> => {
 export const saveStory = async (story: Story): Promise<number> => {
     try {
         const now = new Date();
-        
-        // Save story metadata
-        const storyId = await db.stories.add({
-            title: story.title,
-            createdAt: now,
-            updatedAt: now
-        });
+        let storyId: number;
+
+        if (story.id) {
+            // Update existing story
+            storyId = story.id;
+            await db.stories.update(storyId, {
+                title: story.title,
+                updatedAt: now
+            });
+
+            // Delete existing chapters for this story
+            await db.chapters.where('storyId').equals(storyId).delete();
+            console.log(`Updated existing story "${story.title}" with ID: ${storyId}`);
+        } else {
+            // Create new story
+            storyId = await db.stories.add({
+                title: story.title,
+                createdAt: now,
+                updatedAt: now
+            });
+            console.log(`Created new story "${story.title}" with ID: ${storyId}`);
+        }
 
         // Save chapters with images as blobs
         for (const chapter of story.chapters) {
@@ -90,7 +105,6 @@ export const saveStory = async (story: Story): Promise<number> => {
             await db.chapters.add(storedChapter);
         }
 
-        console.log(`Story "${story.title}" saved with ID: ${storyId}`);
         return storyId;
     } catch (error) {
         console.error('Failed to save story:', error);
@@ -126,6 +140,7 @@ export const loadStory = async (storyId: number): Promise<Story | null> => {
         }
 
         return {
+            id: storyId,
             title: storedStory.title,
             chapters
         };
@@ -199,6 +214,20 @@ export const getRandomPrompt = async (genre?: Genre, audience?: Audience, exclud
     } catch (error) {
         console.error('Failed to get random prompt:', error);
         return "A mysterious adventure waiting to unfold...";
+    }
+};
+
+// Clear all saved stories from database
+export const clearAllStories = async (): Promise<void> => {
+    try {
+        await db.transaction('rw', [db.stories, db.chapters], async () => {
+            await db.chapters.clear();
+            await db.stories.clear();
+        });
+        console.log('All saved stories cleared from database');
+    } catch (error) {
+        console.error('Failed to clear stories:', error);
+        throw error;
     }
 };
 

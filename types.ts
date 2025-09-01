@@ -9,6 +9,7 @@ export interface Chapter {
 }
 
 export interface Story {
+    id?: number;
     title: string;
     chapters: Chapter[];
 }
@@ -25,7 +26,6 @@ export interface AppState {
     isLoading: boolean;
     error: string | null;
     theme: 'flash-era' | 'flash-era-light';
-    loadingStep: number;
 }
 
 export type Action =
@@ -37,8 +37,7 @@ export type Action =
     | { type: 'SET_IMAGE_URL'; payload: { chapterId: string; url: string } }
     | { type: 'SET_GENERATING_IMAGE'; payload: { chapterId: string; isGenerating: boolean } }
     | { type: 'SET_THEME'; payload: 'flash-era' | 'flash-era-light' }
-    | { type: 'SAVE_STORY_SUCCESS'; payload: { storyId: number } }
-    | { type: 'SET_LOADING_STEP'; payload: number };
+    | { type: 'SAVE_STORY_SUCCESS'; payload: { storyId: number } };
 
 export enum Genre {
     FANTASY = 'Fantasy',

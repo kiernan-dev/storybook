@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getAllStories, loadStory, deleteStory, type StoredStory } from '../../services/database';
+import { getAllStories, loadStory, deleteStory, clearAllStories, type StoredStory } from '../../services/database';
 import { useStory } from '../../hooks/useStory';
 import { AppStep } from '../../types';
 import Button from './Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './Card';
+import ConfirmationModal from './ConfirmationModal';
 
 interface SavedStoriesProps {
     onClose: () => void;
@@ -12,6 +13,11 @@ interface SavedStoriesProps {
 const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
     const [stories, setStories] = useState<StoredStory[]>([]);
     const [loading, setLoading] = useState(true);
+    const [confirmAction, setConfirmAction] = useState<{
+        type: 'delete' | 'clearAll';
+        storyId?: number;
+        storyTitle?: string;
+    } | null>(null);
     const { dispatch } = useStory();
 
     useEffect(() => {
@@ -42,15 +48,39 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
         }
     };
 
-    const handleDeleteStory = async (storyId: number, title: string) => {
-        if (confirm(`Are you sure you want to delete "${title}"?`)) {
-            try {
-                await deleteStory(storyId);
-                await loadStories(); // Refresh the list
-            } catch (error) {
-                console.error('Failed to delete story:', error);
+    const handleDeleteStory = (storyId: number, title: string) => {
+        setConfirmAction({
+            type: 'delete',
+            storyId,
+            storyTitle: title
+        });
+    };
+
+    const handleClearAllStories = () => {
+        setConfirmAction({
+            type: 'clearAll'
+        });
+    };
+
+    const executeAction = async () => {
+        if (!confirmAction) return;
+
+        try {
+            if (confirmAction.type === 'delete' && confirmAction.storyId) {
+                await deleteStory(confirmAction.storyId);
+            } else if (confirmAction.type === 'clearAll') {
+                await clearAllStories();
             }
+            await loadStories(); // Refresh the list
+        } catch (error) {
+            console.error(`Failed to ${confirmAction.type}:`, error);
+        } finally {
+            setConfirmAction(null);
         }
+    };
+
+    const cancelAction = () => {
+        setConfirmAction(null);
     };
 
     if (loading) {
@@ -69,7 +99,18 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
                 <div className="p-6 border-b">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold">Saved Stories</h2>
-                        <Button variant="outline" onClick={onClose}>Close</Button>
+                        <div className="flex space-x-2">
+                            {stories.length > 0 && (
+                                <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={handleClearAllStories}
+                                >
+                                    Clear All
+                                </Button>
+                            )}
+                            <Button variant="outline" onClick={onClose}>Close</Button>
+                        </div>
                     </div>
                 </div>
                 
@@ -113,6 +154,22 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
                     )}
                 </div>
             </div>
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!confirmAction}
+                title={confirmAction?.type === 'clearAll' ? 'Clear All Stories' : 'Delete Story'}
+                message={
+                    confirmAction?.type === 'clearAll'
+                        ? 'Are you sure you want to delete ALL saved stories? This action cannot be undone.'
+                        : `Are you sure you want to delete "${confirmAction?.storyTitle}"? This action cannot be undone.`
+                }
+                confirmText={confirmAction?.type === 'clearAll' ? 'Clear All' : 'Delete'}
+                cancelText="Cancel"
+                onConfirm={executeAction}
+                onCancel={cancelAction}
+                variant="destructive"
+            />
         </div>
     );
 };

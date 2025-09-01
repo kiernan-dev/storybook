@@ -1,8 +1,6 @@
 
 import { GoogleGenAI, Type } from '@google/genai';
-import { Story, Chapter, Genre, Audience, Action } from '../types';
-import { Dispatch } from 'react';
-import { LOADING_STEPS } from '../constants';
+import { Story, Chapter, Genre, Audience } from '../types';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -66,12 +64,9 @@ const storySchema = {
 export const generateStory = async (
     prompt: string, 
     genre: Genre, 
-    audience: Audience,
-    dispatch: Dispatch<Action>
+    audience: Audience
 ): Promise<Story> => {
     try {
-        dispatch({ type: 'SET_LOADING_STEP', payload: 0 });
-        
         const fullPrompt = `
             You are a world-class author. Write a complete story based on the following prompt.
             The story should be engaging and well-structured with multiple chapters.
@@ -84,8 +79,6 @@ export const generateStory = async (
             Return the story in the specified JSON format.
         `;
 
-        dispatch({ type: 'SET_LOADING_STEP', payload: 1 });
-
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: fullPrompt,
@@ -94,13 +87,9 @@ export const generateStory = async (
                 responseSchema: storySchema,
             },
         });
-
-        dispatch({ type: 'SET_LOADING_STEP', payload: 2 });
         
         const jsonText = response.text.trim();
         const parsedStory = JSON.parse(jsonText) as { title: string, chapters: { title: string, content: string }[] };
-
-        dispatch({ type: 'SET_LOADING_STEP', payload: 3 });
 
         return {
             title: parsedStory.title,
