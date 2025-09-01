@@ -8,6 +8,7 @@ import Button from '../ui/Button';
 import Textarea from '../ui/Textarea';
 import Select from '../ui/Select';
 import Spinner from '../ui/Spinner';
+import MagicPromptButton from '../ui/MagicPromptButton';
 import { GENRE_OPTIONS, AUDIENCE_OPTIONS } from '../../constants';
 
 const PromptView: React.FC = () => {
@@ -49,7 +50,15 @@ const PromptView: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-8 p-8">
                         <div className="space-y-3">
-                            <label htmlFor="prompt" className="text-base font-medium block">Story Prompt</label>
+                            <div className="flex justify-between items-center">
+                                <label htmlFor="prompt" className="text-base font-medium block">Story Prompt</label>
+                                <MagicPromptButton
+                                    genre={genre}
+                                    audience={audience}
+                                    onPromptGenerated={setPrompt}
+                                    disabled={state.isLoading}
+                                />
+                            </div>
                             <Textarea
                                 id="prompt"
                                 placeholder="e.g., A brave knight who is afraid of the dark..."
