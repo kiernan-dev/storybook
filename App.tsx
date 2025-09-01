@@ -8,11 +8,15 @@ import Stepper from './components/common/Stepper';
 import PromptView from './components/views/PromptView';
 import EditorView from './components/views/EditorView';
 import PreviewView from './components/views/PreviewView';
+import LoadingView from './components/views/LoadingView';
 
 const AppContent: React.FC = () => {
     const { state } = useStory();
 
     const renderContent = () => {
+        if (state.isLoading) {
+            return <LoadingView />;
+        }
         switch (state.step) {
             case AppStep.PROMPT:
                 return <PromptView />;
@@ -26,12 +30,12 @@ const AppContent: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background font-sans antialiased">
+        <div>
             <Header />
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-                <div className="max-w-4xl mx-auto">
+            <main>
+                <div>
                     <Stepper currentStep={state.step} />
-                    <div className="mt-12">
+                    <div>
                         {renderContent()}
                     </div>
                 </div>

@@ -25,10 +25,9 @@ const PromptView: React.FC = () => {
         }
 
         dispatch({ type: 'SET_LOADING', payload: true });
-        dispatch({ type: 'SET_ERROR', payload: null });
 
         try {
-            const story = await generateStory(prompt, genre, audience);
+            const story = await generateStory(prompt, genre, audience, dispatch);
             dispatch({ type: 'SET_STORY', payload: story });
             dispatch({ type: 'SET_STEP', payload: AppStep.EDITING });
         } catch (err) {
