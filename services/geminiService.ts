@@ -69,21 +69,54 @@ export const generateStory = async (
     audience: Audience,
     dispatch: Dispatch<Action>
 ): Promise<Story> => {
-    // MOCK API CALL with stepped progress
-    for (let i = 0; i < LOADING_STEPS.length; i++) {
-        dispatch({ type: 'SET_LOADING_STEP', payload: i });
-        await new Promise(resolve => setTimeout(resolve, 1500));
-    }
-    
-    const mockStory: Story = {
-        title: 'Mock Story',
-        chapters: [
-            { id: '1', title: 'Chapter 1', content: 'This is a mock chapter.', imagePrompt: '', imageUrl: null, isGeneratingImage: false },
-            { id: '2', title: 'Chapter 2', content: 'This is another mock chapter.', imagePrompt: '', imageUrl: null, isGeneratingImage: false },
-        ],
-    };
+    try {
+        dispatch({ type: 'SET_LOADING_STEP', payload: 0 });
+        
+        const fullPrompt = `
+            You are a world-class author. Write a complete story based on the following prompt.
+            The story should be engaging and well-structured with multiple chapters.
+            
+            Prompt: "${prompt}"
+            Genre: ${genre}
+            Target Audience: ${audience}
+            
+            Generate a title and at least 5 chapters. Each chapter should have a title and substantial content.
+            Return the story in the specified JSON format.
+        `;
 
-    return mockStory;
+        dispatch({ type: 'SET_LOADING_STEP', payload: 1 });
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: fullPrompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: storySchema,
+            },
+        });
+
+        dispatch({ type: 'SET_LOADING_STEP', payload: 2 });
+        
+        const jsonText = response.text.trim();
+        const parsedStory = JSON.parse(jsonText) as { title: string, chapters: { title: string, content: string }[] };
+
+        dispatch({ type: 'SET_LOADING_STEP', payload: 3 });
+
+        return {
+            title: parsedStory.title,
+            chapters: parsedStory.chapters.map((chapter, index) => ({
+                id: `chapter-${index}-${Date.now()}`,
+                title: chapter.title,
+                content: chapter.content,
+                imagePrompt: '',
+                imageUrl: null,
+                isGeneratingImage: false,
+            })),
+        };
+    } catch (error) {
+        console.error("Error generating story:", error);
+        throw new Error("Failed to generate story. Please try again.");
+    }
 };
 
 export const generateImageForChapter = async (chapterContent: string): Promise<string> => {
