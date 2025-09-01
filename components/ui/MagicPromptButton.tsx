@@ -39,20 +39,29 @@ const MagicPromptButton: React.FC<MagicPromptButtonProps> = ({
 }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [sparkle, setSparkle] = useState(false);
+    const [lastUsedPromptId, setLastUsedPromptId] = useState<number | undefined>(undefined);
 
     const handleMagicClick = async () => {
         setIsGenerating(true);
         setSparkle(true);
 
         try {
-            // Initialize prompts if needed
+            // Initialize prompts with auto-upgrade
             await seedStoryPrompts();
             
             // Add a small delay for better UX
             await new Promise(resolve => setTimeout(resolve, 800));
             
-            const prompt = await getRandomPrompt(genre, audience);
-            onPromptGenerated(prompt);
+            const result = await getRandomPrompt(genre, audience, lastUsedPromptId);
+            
+            if (typeof result === 'string') {
+                // Fallback case
+                onPromptGenerated(result);
+            } else {
+                // Normal case with ID
+                onPromptGenerated(result.prompt);
+                setLastUsedPromptId(result.id);
+            }
         } catch (error) {
             console.error('Failed to generate magic prompt:', error);
             onPromptGenerated('A magical story waiting to be discovered...');
