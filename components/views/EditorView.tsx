@@ -4,7 +4,7 @@ import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
 import { Chapter, AppStep } from '../../types';
 import Button from '../ui/Button';
-import Textarea from '../ui/Textarea';
+import RichTextEditor from '../ui/RichTextEditor';
 import { generateImageForChapter } from '../../services/geminiService';
 import Spinner from '../ui/Spinner';
 
@@ -12,10 +12,10 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     const { dispatch, saveCurrentStory } = useStory();
     const originalContentRef = useRef(chapter.content);
 
-    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleContentChange = (content: string) => {
         dispatch({
             type: 'UPDATE_CHAPTER',
-            payload: { chapterId: chapter.id, content: e.target.value },
+            payload: { chapterId: chapter.id, content },
         });
     };
 
@@ -52,20 +52,47 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
         }
     };
 
+    const handleManualSave = async () => {
+        try {
+            await saveCurrentStory();
+            console.log('Manual save completed');
+        } catch (error) {
+            console.error('Manual save failed:', error);
+        }
+    };
+
+    const handleCopyText = () => {
+        navigator.clipboard.writeText(chapter.content).then(() => {
+            console.log('Chapter content copied to clipboard');
+        }).catch(err => {
+            console.error('Failed to copy text:', err);
+        });
+    };
+
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{chapter.title}</h3>
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">{chapter.title}</h3>
+                <div className="flex space-x-2">
+                    <Button variant="outline" size="sm" onClick={handleCopyText}>
+                        Copy Text
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleManualSave}>
+                        Save
+                    </Button>
+                </div>
+            </div>
             
             {/* Mobile-optimized layout */}
             <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
                 {/* Content editor */}
-                <div className="order-2 lg:order-1">
-                    <Textarea
+                <div className="order-2 lg:order-1 w-full overflow-hidden">
+                    <RichTextEditor
                         value={chapter.content}
                         onChange={handleContentChange}
                         onBlur={handleTextBlur}
-                        className="h-32 sm:h-40 lg:h-64 text-sm resize-none"
+                        className="w-full"
                         placeholder="Edit your chapter content..."
                     />
                 </div>
@@ -145,7 +172,7 @@ const EditorView: React.FC = () => {
             </div>
 
             {/* Mobile-optimized editor content */}
-            <div className="bg-card/50 rounded-lg p-4 border border-border/20">
+            <div className="bg-card/50 rounded-lg p-4 border border-border/20 w-full overflow-hidden">
                 {activeChapter ? (
                     <ChapterEditor chapter={activeChapter} />
                 ) : (

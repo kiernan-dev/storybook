@@ -25,17 +25,17 @@ const LoadingView: React.FC = () => {
     }, []);
 
     return (
-        <div className="rounded-lg border border-border/20 bg-card/50 p-8 backdrop-blur-sm">
-            <div className="flex flex-col items-center justify-center text-center">
+        <div className="rounded-lg border border-border/20 bg-card/50 p-8 backdrop-blur-sm min-h-[400px] flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center text-center w-full">
                 <h2 className="text-2xl font-bold text-foreground mb-8">
                     Generating Your Story...
                 </h2>
                 
-                <div className="relative w-full max-w-lg mb-6">
+                <div className="relative w-full max-w-lg mb-6 overflow-hidden rounded-full">
                     <div className="h-4 bg-muted/30 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-primary/60 via-primary to-primary/60 animate-shimmer rounded-full"></div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer-glow rounded-full"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer-glow rounded-full overflow-hidden"></div>
                 </div>
 
                 <div className="h-8 flex items-center justify-center">
