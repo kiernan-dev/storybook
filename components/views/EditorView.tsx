@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
 import { Chapter, AppStep } from '../../types';
@@ -9,7 +9,8 @@ import { generateImageForChapter } from '../../services/geminiService';
 import Spinner from '../ui/Spinner';
 
 const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-    const { dispatch } = useStory();
+    const { dispatch, saveCurrentStory } = useStory();
+    const originalContentRef = useRef(chapter.content);
 
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         dispatch({
@@ -17,12 +18,33 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
             payload: { chapterId: chapter.id, content: e.target.value },
         });
     };
+
+    const handleTextBlur = async () => {
+        // Auto-save only if content has changed
+        if (chapter.content !== originalContentRef.current) {
+            try {
+                await saveCurrentStory();
+                originalContentRef.current = chapter.content; // Update reference after successful save
+                console.log('Auto-saved after text change');
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
+    };
     
     const handleGenerateImage = async () => {
         dispatch({ type: 'SET_GENERATING_IMAGE', payload: { chapterId: chapter.id, isGenerating: true } });
         try {
             const imageUrl = await generateImageForChapter(chapter.content);
             dispatch({ type: 'SET_IMAGE_URL', payload: { chapterId: chapter.id, url: imageUrl } });
+            
+            // Auto-save after successful image generation
+            try {
+                await saveCurrentStory();
+                console.log('Auto-saved after image generation');
+            } catch (saveError) {
+                console.error('Auto-save failed after image generation:', saveError);
+            }
         } catch (error) {
             console.error("Image generation failed", error);
             dispatch({ type: 'SET_ERROR', payload: 'Failed to generate image.' });
@@ -42,6 +64,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
                     <Textarea
                         value={chapter.content}
                         onChange={handleContentChange}
+                        onBlur={handleTextBlur}
                         className="h-32 sm:h-40 lg:h-64 text-sm resize-none"
                         placeholder="Edit your chapter content..."
                     />
