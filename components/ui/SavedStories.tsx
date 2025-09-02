@@ -96,8 +96,8 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-background/80 border border-white/10 dark:border-black/10 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
                 <div className="p-6 border-b">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold">Saved Stories</h2>
