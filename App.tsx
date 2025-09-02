@@ -14,6 +14,12 @@ const AppContent: React.FC = () => {
     const { state } = useStory();
     const [showBackToTop, setShowBackToTop] = useState(false);
 
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove('flash-era', 'flash-era-light');
+        root.classList.add(state.theme);
+    }, [state.theme]);
+
     const handleScroll = () => {
         if (state.step === AppStep.PREVIEW) {
             // Show button when title page is halfway out of view (assuming title page is ~70vh)
@@ -50,8 +56,19 @@ const AppContent: React.FC = () => {
         }
     };
 
+    const themeStyles: { [key: string]: React.CSSProperties } = {
+        'flash-era': {
+            backgroundImage: 'linear-gradient(135deg, hsl(270 80% 8%) 0%, hsl(280 70% 12%) 25%, hsl(260 60% 10%) 50%, hsl(290 80% 15%) 75%, hsl(270 70% 8%) 100%)',
+            backgroundAttachment: 'fixed',
+        },
+        'flash-era-light': {
+            backgroundImage: 'linear-gradient(135deg, hsl(270 30% 98%) 0%, hsl(280 60% 85%) 40%, hsl(260 60% 80%) 50%, hsl(290 60% 85%) 60%, hsl(270 30% 98%) 100%)',
+            backgroundAttachment: 'fixed',
+        },
+    };
+
     return (
-        <div>
+        <div className="min-h-screen" style={themeStyles[state.theme]}>
             <Header />
             <main className="px-4 md:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto py-8">
