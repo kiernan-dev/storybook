@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
 import { AppStep } from '../../types';
@@ -10,22 +10,6 @@ const PreviewView: React.FC = () => {
     const { state, saveCurrentStory } = useStory();
     const { transitionToStep, isTransitioning } = useStepTransition();
     const [isSaving, setIsSaving] = useState(false);
-    const [showBackToTop, setShowBackToTop] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            // Show button when title page is halfway out of view (assuming title page is ~70vh)
-            const titlePageHeight = window.innerHeight * 0.7 * 0.5; // Half of 70vh
-            setShowBackToTop(window.scrollY > titlePageHeight);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
 
     if (!state.story) {
         return (
@@ -183,19 +167,6 @@ const PreviewView: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Floating Back to Top Button */}
-            {showBackToTop && (
-                <button
-                    onClick={scrollToTop}
-                    className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 p-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
-                    aria-label="Back to top"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                </button>
-            )}
         </div>
     );
 };
