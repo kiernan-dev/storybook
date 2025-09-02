@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
 import { AppStep } from '../../types';
@@ -10,6 +10,22 @@ const PreviewView: React.FC = () => {
     const { state, saveCurrentStory } = useStory();
     const { transitionToStep, isTransitioning } = useStepTransition();
     const [isSaving, setIsSaving] = useState(false);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            // Show button when title page is halfway out of view (assuming title page is ~70vh)
+            const titlePageHeight = window.innerHeight * 0.7 * 0.5; // Half of 70vh
+            setShowBackToTop(window.scrollY > titlePageHeight);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     if (!state.story) {
         return (
@@ -47,75 +63,139 @@ const PreviewView: React.FC = () => {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Mobile-friendly header */}
-            <div className="flex flex-col space-y-4 p-4 bg-card/50 rounded-lg border border-border/20">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <h1 className="text-xl sm:text-2xl font-bold">Book Preview</h1>
-                    <Button variant="outline" onClick={handleBackToEdit} size="sm" className="w-full sm:w-auto" disabled={isTransitioning}>
-                        {isTransitioning ? (
-                            <>
-                                <Spinner className="mr-2 h-3 w-3" /> Loading...
-                            </>
-                        ) : (
-                            'Back to Editor'
-                        )}
-                    </Button>
-                </div>
-                
-                {/* Action buttons */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                        variant="outline" 
-                        onClick={handleSaveStory}
-                        disabled={isSaving}
-                        size="sm"
-                        className="w-full sm:flex-1"
-                    >
-                        {isSaving ? (
-                            <>
-                                <Spinner className="mr-2 h-3 w-3" /> Saving...
-                            </>
-                        ) : (
-                            'Save Story'
-                        )}
-                    </Button>
-                    <Button onClick={handleDownload} size="sm" className="w-full sm:flex-1">
-                        Download PDF
-                    </Button>
+        <div className="min-h-screen">
+            {/* Fixed Header with better contrast */}
+            <div className="sticky top-0 z-10 backdrop-blur-md bg-card/80 border-b border-border shadow-sm">
+                <div className="max-w-4xl mx-auto px-4 py-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Book Preview</h1>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button variant="outline" onClick={handleBackToEdit} size="sm" className="w-full sm:w-auto" disabled={isTransitioning}>
+                                {isTransitioning ? (
+                                    <>
+                                        <Spinner className="mr-2 h-3 w-3" /> Loading...
+                                    </>
+                                ) : (
+                                    'Back to Editor'
+                                )}
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                onClick={handleSaveStory}
+                                disabled={isSaving}
+                                size="sm"
+                                className="w-full sm:w-auto"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Spinner className="mr-2 h-3 w-3" /> Saving...
+                                    </>
+                                ) : (
+                                    'Save Story'
+                                )}
+                            </Button>
+                            <Button onClick={handleDownload} size="sm" className="w-full sm:w-auto">
+                                Download PDF
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Mobile-responsive preview content */}
-            <div className="bg-card/50 rounded-lg border border-border/20 overflow-hidden">
-                {/* Cover Page - Mobile optimized */}
-                <div className="p-6 sm:p-8 flex flex-col items-center text-center bg-muted/20 min-h-[50vh] sm:min-h-[60vh] justify-center space-y-4">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold">{title}</h1>
-                    {chapters[0]?.imageUrl && (
-                        <img src={chapters[0].imageUrl} alt="Cover" className="w-full max-w-xs h-40 sm:h-48 object-cover rounded-lg shadow-md" />
-                    )}
-                    <p className="text-sm sm:text-base text-muted-foreground">By An AI Author</p>
-                </div>
-
-                {/* Chapters - Scrollable on mobile */}
-                <div className="divide-y divide-border/20">
-                    {chapters.map((chapter, index) => (
-                        <div key={chapter.id} className="p-4 sm:p-6 space-y-4">
-                            <h2 className="text-lg sm:text-xl font-serif font-bold">{chapter.title}</h2>
-                            <div className="space-y-3">
-                                {chapter.imageUrl && (
-                                    <div className="w-full sm:w-48 sm:float-left sm:mr-4 sm:mb-2">
-                                        <img src={chapter.imageUrl} alt={`Illustration for ${chapter.title}`} className="w-full h-32 sm:h-36 object-cover rounded-lg shadow-sm" />
-                                    </div>
-                                )}
-                                <div className="text-sm sm:text-base leading-relaxed font-serif">
-                                    <p className="whitespace-pre-wrap">{chapter.content}</p>
+            {/* E-book Style Content */}
+            <div className="max-w-4xl mx-auto px-4 py-8">
+                <div className="bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-border/50">
+                    
+                    {/* Cover Page */}
+                    <div className="relative p-12 text-center bg-muted/50 min-h-[70vh] flex flex-col justify-center">
+                        <div className="relative z-10">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-foreground mb-8 leading-tight">
+                                {title}
+                            </h1>
+                            {chapters[0]?.imageUrl && (
+                                <div className="mb-8 flex justify-center">
+                                    <img 
+                                        src={chapters[0].imageUrl} 
+                                        alt="Cover" 
+                                        className="w-80 h-80 object-cover rounded-2xl shadow-2xl border-4 border-white/50 dark:border-gray-700/50" 
+                                    />
                                 </div>
-                            </div>
+                            )}
+                            <p className="text-lg text-muted-foreground font-serif italic">
+                                An AI-Generated Story
+                            </p>
+                            <div className="mt-8 w-24 h-0.5 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-500 to-transparent mx-auto"></div>
+                        </div>
+                    </div>
+
+                    {/* Chapters */}
+                    {chapters.map((chapter, index) => (
+                        <div key={chapter.id} className="border-t border-gray-200/50 dark:border-gray-700/50">
+                            <article className="p-8 sm:p-12 max-w-none">
+                                {/* Chapter Header */}
+                                <header className="mb-8 text-center">
+                                    <div className="inline-block px-4 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mb-4">
+                                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Chapter {index + 1}</span>
+                                    </div>
+                                    <h2 className="text-3xl sm:text-4xl font-serif font-bold text-foreground leading-tight">
+                                        {chapter.title}
+                                    </h2>
+                                    <div className="mt-4 w-16 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 dark:via-indigo-500 to-transparent mx-auto"></div>
+                                </header>
+
+                                {/* Chapter Image - Much Larger */}
+                                {chapter.imageUrl && (
+                                    <figure className="mb-8 -mx-4 sm:-mx-8">
+                                        <img 
+                                            src={chapter.imageUrl} 
+                                            alt={`Illustration for ${chapter.title}`} 
+                                            className="w-full h-80 sm:h-96 object-cover rounded-xl shadow-lg" 
+                                        />
+                                    </figure>
+                                )}
+
+                                {/* Chapter Content with Book Typography */}
+                                <div 
+                                    className="prose prose-lg sm:prose-xl max-w-none
+                                             prose-headings:font-serif prose-headings:text-gray-900 dark:prose-headings:text-white
+                                             prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-p:leading-relaxed prose-p:mb-6
+                                             prose-p:text-justify prose-p:indent-8 prose-p:font-serif prose-p:text-lg
+                                             prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-bold
+                                             prose-em:text-gray-700 dark:prose-em:text-gray-300 prose-em:italic
+                                             prose-blockquote:border-l-4 prose-blockquote:border-indigo-300 dark:prose-blockquote:border-indigo-600
+                                             prose-blockquote:bg-indigo-50/50 dark:prose-blockquote:bg-indigo-900/20 prose-blockquote:p-4 prose-blockquote:rounded-r-lg
+                                             prose-blockquote:italic prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300"
+                                    dangerouslySetInnerHTML={{ __html: chapter.content }}
+                                />
+                            </article>
                         </div>
                     ))}
+
+                    {/* Book End */}
+                    <div className="p-12 text-center bg-muted/50 border-t border-border/50">
+                        <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-500 to-transparent mx-auto mb-6"></div>
+                        <p className="text-lg font-serif italic text-muted-foreground">
+                            ~ The End ~
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-4 font-serif">
+                            Created with StoryBook AI
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            {/* Floating Back to Top Button */}
+            {showBackToTop && (
+                <button
+                    onClick={scrollToTop}
+                    className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 p-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                    aria-label="Back to top"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                </button>
+            )}
         </div>
     );
 };

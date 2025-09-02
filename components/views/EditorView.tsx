@@ -11,6 +11,7 @@ import Spinner from '../ui/Spinner';
 const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     const { state, dispatch, saveCurrentStory } = useStory();
     const originalContentRef = useRef(chapter.content);
+    const [customImagePrompt, setCustomImagePrompt] = useState('');
 
     const handleContentChange = (content: string) => {
         dispatch({
@@ -35,7 +36,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     const handleGenerateImage = async () => {
         dispatch({ type: 'SET_GENERATING_IMAGE', payload: { chapterId: chapter.id, isGenerating: true } });
         try {
-            const imageUrl = await generateImageForChapter(chapter.content);
+            const imageUrl = await generateImageForChapter(chapter.content, customImagePrompt);
             dispatch({ type: 'SET_IMAGE_URL', payload: { chapterId: chapter.id, url: imageUrl } });
             
             // Create an updated story object to pass to the save function
@@ -121,9 +122,18 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
                             </div>
                         )}
                     </div>
-                    <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} size="sm" className="w-full">
-                        {chapter.isGeneratingImage ? <><Spinner className="mr-2 h-3 w-3" /> Generating...</> : "Generate Illustration"}
-                    </Button>
+                    <div className="space-y-2">
+                        <textarea
+                            value={customImagePrompt}
+                            onChange={(e) => setCustomImagePrompt(e.target.value)}
+                            placeholder="Add specific details for the image (e.g., character descriptions, colors, artistic style, mood, lighting...)&#10;&#10;Example: 'with bright golden sunlight, showing the character's surprised expression, in watercolor style'"
+                            rows={3}
+                            className="w-full px-3 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                        />
+                        <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} size="sm" className="w-full">
+                            {chapter.isGeneratingImage ? <><Spinner className="mr-2 h-3 w-3" /> Generating...</> : "Generate Illustration"}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

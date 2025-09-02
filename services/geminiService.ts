@@ -109,7 +109,7 @@ export const generateStory = async (
     }
 };
 
-export const generateImageForChapter = async (chapterContent: string): Promise<string> => {
+export const generateImageForChapter = async (chapterContent: string, customPrompt?: string): Promise<string> => {
     try {
         const imagePromptGenResponse = await ai.models.generateContent({
             model: "gemini-2.5-flash",
@@ -118,11 +118,16 @@ export const generateImageForChapter = async (chapterContent: string): Promise<s
             Chapter Text: "${chapterContent}"`,
         });
 
-        const imagePrompt = imagePromptGenResponse.text.trim();
+        const baseImagePrompt = imagePromptGenResponse.text.trim();
+        
+        // Combine the generated prompt with the custom prompt if provided
+        const finalPrompt = customPrompt 
+            ? `children's storybook illustration style, ${baseImagePrompt}, ${customPrompt}`
+            : `children's storybook illustration style, ${baseImagePrompt}`;
         
         const imageResponse = await ai.models.generateImages({
             model: 'imagen-3.0-generate-002',
-            prompt: `children's storybook illustration style, ${imagePrompt}`,
+            prompt: finalPrompt,
             config: {
                 numberOfImages: 1,
                 outputMimeType: 'image/png',
