@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
 import { textToHtml, htmlToText } from '../../utils/textFormatter';
 
 interface RichTextEditorProps {
@@ -10,12 +12,6 @@ interface RichTextEditorProps {
     readOnly?: boolean;
 }
 
-declare global {
-    interface Window {
-        Quill: any;
-    }
-}
-
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
     value,
     onChange,
@@ -24,19 +20,19 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     className = "",
     readOnly = false
 }) => {
-    const editorRef = useRef<HTMLDivElement>(null);
-    const quillRef = useRef<any>(null);
-    const isUpdatingRef = useRef(false);
-    const editorIdRef = useRef(`quill-${Date.now()}-${Math.random()}`);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const quillRef = useRef<Quill | null>(null);
 
+    // Initialize Quill
     useEffect(() => {
-        if (!editorRef.current || !window.Quill) return;
-        
-        // Check if Quill is already initialized on this element
-        if (quillRef.current || editorRef.current.classList.contains('ql-container')) return;
+        if (!wrapperRef.current) return;
 
-        // Initialize Quill with book-focused formatting options
-        const quill = new window.Quill(editorRef.current, {
+        // Create a div for the editor to mount into, and add it to the wrapper
+        const editorEl = document.createElement('div');
+        editorEl.className = "min-h-[300px] w-full";
+        wrapperRef.current.appendChild(editorEl);
+
+        const quill = new Quill(editorEl, {
             theme: 'snow',
             readOnly,
             placeholder,
@@ -55,60 +51,60 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 'list', 'bullet', 'align', 'blockquote'
             ]
         });
-
         quillRef.current = quill;
 
         // Set initial content
         if (value) {
             const htmlContent = textToHtml(value);
-            isUpdatingRef.current = true;
             quill.root.innerHTML = htmlContent;
-            isUpdatingRef.current = false;
         }
 
-        // Handle content changes
-        quill.on('text-change', () => {
-            if (isUpdatingRef.current) return;
-            
-            const html = quill.root.innerHTML;
-            const plainText = htmlToText(html);
-            onChange(plainText);
-        });
+        // Add event listeners
+        const textChangeHandler = () => {
+            if (quill) {
+                const html = quill.root.innerHTML;
+                const plainText = htmlToText(html);
+                onChange(plainText);
+            }
+        };
+        quill.on('text-change', textChangeHandler);
 
-        // Handle blur events
-        quill.on('selection-change', (range: any) => {
+        const selectionChangeHandler = (range: any) => {
             if (!range && onBlur) {
                 onBlur();
             }
-        });
-
-        return () => {
-            if (quillRef.current) {
-                quillRef.current.off('text-change');
-                quillRef.current.off('selection-change');
-                quillRef.current = null;
-            }
         };
-    }, []);
+        quill.on('selection-change', selectionChangeHandler);
+
+        // Cleanup function: destroy everything inside the wrapper
+        return () => {
+            if (wrapperRef.current) {
+                wrapperRef.current.innerHTML = '';
+            }
+            quillRef.current = null;
+        };
+    }, []); // Empty dependency array ensures this runs only once on mount
 
     // Update editor when value changes externally
     useEffect(() => {
-        if (quillRef.current && !isUpdatingRef.current) {
-            const htmlContent = textToHtml(value);
+        if (quillRef.current) {
             const currentContent = quillRef.current.root.innerHTML;
-            
-            if (currentContent !== htmlContent) {
-                isUpdatingRef.current = true;
-                quillRef.current.root.innerHTML = htmlContent;
-                isUpdatingRef.current = false;
+            const newContent = textToHtml(value);
+            if (currentContent !== newContent) {
+                quillRef.current.root.innerHTML = newContent;
             }
         }
     }, [value]);
 
+    // Handle readOnly prop changes
+    useEffect(() => {
+        if (quillRef.current) {
+            quillRef.current.enable(!readOnly);
+        }
+    }, [readOnly]);
+
     return (
-        <div className={`rich-text-editor ${className} w-full`}>
-            <div ref={editorRef} className="min-h-[300px] w-full" />
-        </div>
+        <div className={`rich-text-editor ${className} w-full`} ref={wrapperRef} />
     );
 };
 
