@@ -9,7 +9,7 @@ import { generateImageForChapter } from '../../services/geminiService';
 import Spinner from '../ui/Spinner';
 
 const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-    const { dispatch, saveCurrentStory } = useStory();
+    const { state, dispatch, saveCurrentStory } = useStory();
     const originalContentRef = useRef(chapter.content);
 
     const handleContentChange = (content: string) => {
@@ -23,7 +23,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
         // Auto-save only if content has changed
         if (chapter.content !== originalContentRef.current) {
             try {
-                await saveCurrentStory();
+                await saveCurrentStory(state.story);
                 originalContentRef.current = chapter.content; // Update reference after successful save
                 console.log('Auto-saved after text change');
             } catch (error) {
@@ -38,9 +38,17 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
             const imageUrl = await generateImageForChapter(chapter.content);
             dispatch({ type: 'SET_IMAGE_URL', payload: { chapterId: chapter.id, url: imageUrl } });
             
-            // Auto-save after successful image generation
+            // Create an updated story object to pass to the save function
+            const updatedStory = {
+                ...state.story!,
+                chapters: state.story!.chapters.map(ch => 
+                    ch.id === chapter.id ? { ...ch, imageUrl } : ch
+                )
+            };
+
+            // Auto-save with the updated story object
             try {
-                await saveCurrentStory();
+                await saveCurrentStory(updatedStory);
                 console.log('Auto-saved after image generation');
             } catch (saveError) {
                 console.error('Auto-save failed after image generation:', saveError);
@@ -54,7 +62,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
 
     const handleManualSave = async () => {
         try {
-            await saveCurrentStory();
+            await saveCurrentStory(state.story);
             console.log('Manual save completed');
         } catch (error) {
             console.error('Manual save failed:', error);
@@ -174,7 +182,7 @@ const EditorView: React.FC = () => {
             {/* Mobile-optimized editor content */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/20 w-full overflow-hidden">
                 {activeChapter ? (
-                    <ChapterEditor chapter={activeChapter} />
+                    <ChapterEditor key={activeChapter.id} chapter={activeChapter} />
                 ) : (
                     <p>Select a chapter to begin editing.</p>
                 )}

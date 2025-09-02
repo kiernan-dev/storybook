@@ -46,9 +46,6 @@ const MagicPromptButton: React.FC<MagicPromptButtonProps> = ({
         setSparkle(true);
 
         try {
-            // Initialize prompts with auto-upgrade
-            await seedStoryPrompts();
-            
             // Add a small delay for better UX
             await new Promise(resolve => setTimeout(resolve, 800));
             

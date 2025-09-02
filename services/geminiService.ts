@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from '@google/genai';
 import { Story, Chapter, Genre, Audience } from '../types';
+import { textToHtml } from '../utils/textFormatter';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -96,7 +97,7 @@ export const generateStory = async (
             chapters: parsedStory.chapters.map((chapter, index) => ({
                 id: `chapter-${index}-${Date.now()}`,
                 title: chapter.title,
-                content: chapter.content,
+                content: textToHtml(chapter.content),
                 imagePrompt: '',
                 imageUrl: null,
                 isGeneratingImage: false,

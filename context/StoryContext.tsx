@@ -62,7 +62,7 @@ const storyReducer = (state: AppState, action: Action): AppState => {
 export const StoryContext = createContext<{
     state: AppState;
     dispatch: Dispatch<Action>;
-    saveCurrentStory: () => Promise<number | null>;
+    saveCurrentStory: (story?: Story) => Promise<number | null>;
 }>({
     state: initialState,
     dispatch: () => null,
@@ -72,18 +72,19 @@ export const StoryContext = createContext<{
 export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(storyReducer, initialState);
 
-    const saveCurrentStory = async (): Promise<number | null> => {
-        if (!state.story) {
+    const saveCurrentStory = async (storyToSave?: Story): Promise<number | null> => {
+        const story = storyToSave || state.story;
+        if (!story) {
             console.warn('No story to save');
             return null;
         }
 
         try {
-            const storyId = await saveStory(state.story);
+            const storyId = await saveStory(story);
             
             // Update the story with the ID if it's a new story
-            if (!state.story.id) {
-                dispatch({ type: 'SET_STORY', payload: { ...state.story, id: storyId } });
+            if (!story.id) {
+                dispatch({ type: 'SET_STORY', payload: { ...story, id: storyId } });
             }
             
             dispatch({ type: 'SAVE_STORY_SUCCESS', payload: { storyId } });
@@ -117,7 +118,7 @@ export const StoryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     useEffect(() => {
         if (state.step === AppStep.PREVIEW && state.story && !state.isLoading) {
             console.log('Auto-saving story on preview...');
-            saveCurrentStory();
+            saveCurrentStory(state.story);
         }
     }, [state.step, state.story, state.isLoading]);
 

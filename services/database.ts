@@ -7,8 +7,9 @@ export interface StoredStory extends Omit<Story, 'chapters'> {
     updatedAt: Date;
 }
 
-export interface StoredChapter extends Omit<Chapter, 'imageUrl'> {
-    id?: number;
+export interface StoredChapter extends Omit<Chapter, 'id' | 'imageUrl'> {
+    id?: number; // This is the auto-incrementing primary key from Dexie
+    uiId: string; // This is the string-based ID used in the UI state
     storyId: number;
     imageBlob?: Blob;
 }
@@ -28,10 +29,13 @@ export class StoryBookDB extends Dexie {
 
     constructor() {
         super('StoryBookDB');
-        this.version(1).stores({
+        this.version(2).stores({ // Bump the version to handle schema change
             stories: '++id, title, createdAt, updatedAt',
-            chapters: '++id, storyId, title, imageBlob',
+            chapters: '++id, uiId, storyId', // Index uiId and storyId
             storyPrompts: '++id, genre, audience, *tags'
+        }).upgrade(tx => {
+            // Optional: migration logic if needed, for now just letting it rebuild
+            console.log("Upgrading database schema to version 2");
         });
     }
 }
@@ -74,9 +78,8 @@ export const saveStory = async (story: Story): Promise<number> => {
                 updatedAt: now
             });
 
-            // Delete existing chapters for this story
+            // Delete existing chapters for this story to re-add them
             await db.chapters.where('storyId').equals(storyId).delete();
-            console.log(`Updated existing story "${story.title}" with ID: ${storyId}`);
         } else {
             // Create new story
             storyId = await db.stories.add({
@@ -84,24 +87,19 @@ export const saveStory = async (story: Story): Promise<number> => {
                 createdAt: now,
                 updatedAt: now
             });
-            console.log(`Created new story "${story.title}" with ID: ${storyId}`);
         }
 
         // Save chapters with images as blobs
         for (const chapter of story.chapters) {
-            const storedChapter: StoredChapter = {
+            const storedChapter: Omit<StoredChapter, 'id'> = {
+                uiId: chapter.id,
                 storyId,
                 title: chapter.title,
                 content: chapter.content,
                 imagePrompt: chapter.imagePrompt,
-                isGeneratingImage: false
+                isGeneratingImage: chapter.isGeneratingImage,
+                imageBlob: chapter.imageUrl ? dataURLToBlob(chapter.imageUrl) : undefined,
             };
-
-            // Convert image data URL to blob if exists
-            if (chapter.imageUrl && chapter.imageUrl.startsWith('data:')) {
-                storedChapter.imageBlob = dataURLToBlob(chapter.imageUrl);
-            }
-
             await db.chapters.add(storedChapter);
         }
 
@@ -123,7 +121,7 @@ export const loadStory = async (storyId: number): Promise<Story | null> => {
         const chapters: Chapter[] = [];
         for (const storedChapter of storedChapters) {
             const chapter: Chapter = {
-                id: storedChapter.id?.toString() || '',
+                id: storedChapter.uiId, // Restore the original UI ID
                 title: storedChapter.title,
                 content: storedChapter.content,
                 imagePrompt: storedChapter.imagePrompt,
@@ -318,7 +316,7 @@ export const seedStoryPrompts = async (): Promise<void> => {
             // SCI-FI - ADULT
             { prompt: "A veteran space marine returns to Earth only to find it completely changed", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['veteran', 'space marine', 'changed Earth', 'adaptation'] },
             { prompt: "Corporate executives compete for control of the first successful consciousness transfer technology", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['corporate', 'consciousness transfer', 'competition', 'ethics'] },
-            { prompt: "A rogue scientist must decide whether to reveal technology that could end scarcity or destroy society", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['rogue scientist', 'technology', 'scarcity', 'society'] },
+            { prompt: "A rogue scientist must decide whether to reveal technology that could end scarcity or destroy society", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['rogue scientist', 'technology', 'sc scarcity', 'society'] },
             { prompt: "First contact with aliens forces humanity to confront its deepest prejudices", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['first contact', 'aliens', 'prejudice', 'humanity'] },
             { prompt: "A dying Earth's last hope lies in a controversial experiment to merge human and AI consciousness", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['dying Earth', 'experiment', 'human-AI', 'consciousness'] },
             { prompt: "An interstellar diplomat must negotiate peace between species that communicate through completely different means", genre: Genre.SCI_FI, audience: Audience.ADULT, tags: ['diplomat', 'interstellar', 'communication', 'peace'] },
