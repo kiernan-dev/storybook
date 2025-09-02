@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { getAllStories, loadStory, deleteStory, clearAllStories, type StoredStory } from '../../services/database';
+import { getAllStories, loadStory, deleteStory, clearAllStories, StoredStory } from '../../services/database';
 import { useStory } from '../../hooks/useStory';
 import { AppStep } from '../../types';
 import Button from './Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './Card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './Card';
 import ConfirmationModal from './ConfirmationModal';
 
 interface SavedStoriesProps {
     onClose: () => void;
 }
 
+type StoredStoryWithCover = StoredStory & { coverImage?: string };
+
 const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
-    const [stories, setStories] = useState<StoredStory[]>([]);
+    const [stories, setStories] = useState<StoredStoryWithCover[]>([]);
     const [loading, setLoading] = useState(true);
     const [confirmAction, setConfirmAction] = useState<{
         type: 'delete' | 'clearAll';
@@ -95,7 +97,7 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
                 <div className="p-6 border-b">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold">Saved Stories</h2>
@@ -114,7 +116,7 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
                     </div>
                 </div>
                 
-                <div className="p-6 overflow-y-auto max-h-[60vh]">
+                <div className="p-6 overflow-y-auto flex-grow">
                     {stories.length === 0 ? (
                         <div className="text-center py-12">
                             <p className="text-muted-foreground">No stories saved yet.</p>
@@ -123,31 +125,47 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {stories.map((story) => (
-                                <Card key={story.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                                <Card key={story.id} className="flex flex-col">
                                     <CardHeader>
-                                        <CardTitle className="text-lg">{story.title}</CardTitle>
+                                        <CardTitle className="text-lg truncate">{story.title}</CardTitle>
                                         <CardDescription>
-                                            Created: {story.createdAt.toLocaleDateString()}
+                                            Saved: {story.createdAt.toLocaleDateString()}
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardContent>
-                                        <div className="flex justify-between space-x-2">
+                                    <CardContent className="flex-grow">
+                                        <div className="aspect-video bg-muted rounded-md mb-4 overflow-hidden">
+                                            {story.coverImage ? (
+                                                <img src={story.coverImage} alt={story.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                                                    No Image
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1 text-sm">
+                                            <p><span className="font-semibold">Genre:</span> {story.genre}</p>
+                                            <p><span className="font-semibold">Audience:</span> {story.audience}</p>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <div className="flex w-full justify-between space-x-2">
                                             <Button 
                                                 onClick={() => handleLoadStory(story.id!)}
                                                 className="flex-1"
                                             >
-                                                Load Story
+                                                Load
                                             </Button>
                                             <Button 
                                                 variant="destructive" 
+                                                size="sm"
                                                 onClick={() => handleDeleteStory(story.id!, story.title)}
                                             >
                                                 Delete
                                             </Button>
                                         </div>
-                                    </CardContent>
+                                    </CardFooter>
                                 </Card>
                             ))}
                         </div>

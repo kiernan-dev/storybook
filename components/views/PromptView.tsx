@@ -41,8 +41,13 @@ const PromptView: React.FC = () => {
         dispatch({ type: 'SET_LOADING', payload: true });
 
         try {
-            const story = await generateStory(prompt, genre, audience);
-            dispatch({ type: 'SET_STORY', payload: story });
+            const generatedStory = await generateStory(prompt, genre, audience);
+            const fullStory = {
+                ...generatedStory,
+                genre,
+                audience,
+            };
+            dispatch({ type: 'SET_STORY', payload: fullStory });
             transitionToStep(AppStep.EDITING);
         } catch (err) {
             const error = err instanceof Error ? err.message : 'An unknown error occurred';

@@ -12,6 +12,8 @@ export interface Story {
     id?: number;
     title: string;
     chapters: Chapter[];
+    genre: Genre;
+    audience: Audience;
 }
 
 export enum AppStep {

@@ -5,6 +5,8 @@ export interface StoredStory extends Omit<Story, 'chapters'> {
     id?: number;
     createdAt: Date;
     updatedAt: Date;
+    genre: Genre;
+    audience: Audience;
 }
 
 export interface StoredChapter extends Omit<Chapter, 'id' | 'imageUrl'> {
@@ -29,8 +31,8 @@ export class StoryBookDB extends Dexie {
 
     constructor() {
         super('StoryBookDB');
-        this.version(2).stores({ // Bump the version to handle schema change
-            stories: '++id, title, createdAt, updatedAt',
+        this.version(3).stores({ // Bump the version to handle schema change
+            stories: '++id, title, createdAt, updatedAt, genre, audience',
             chapters: '++id, uiId, storyId', // Index uiId and storyId
             storyPrompts: '++id, genre, audience, *tags'
         }).upgrade(tx => {
@@ -75,6 +77,8 @@ export const saveStory = async (story: Story): Promise<number> => {
             storyId = story.id;
             await db.stories.update(storyId, {
                 title: story.title,
+                genre: story.genre,
+                audience: story.audience,
                 updatedAt: now
             });
 
@@ -84,6 +88,8 @@ export const saveStory = async (story: Story): Promise<number> => {
             // Create new story
             storyId = await db.stories.add({
                 title: story.title,
+                genre: story.genre,
+                audience: story.audience,
                 createdAt: now,
                 updatedAt: now
             });
@@ -140,6 +146,8 @@ export const loadStory = async (storyId: number): Promise<Story | null> => {
         return {
             id: storyId,
             title: storedStory.title,
+            genre: storedStory.genre,
+            audience: storedStory.audience,
             chapters
         };
     } catch (error) {
@@ -149,9 +157,21 @@ export const loadStory = async (storyId: number): Promise<Story | null> => {
 };
 
 // Get all stories
-export const getAllStories = async (): Promise<StoredStory[]> => {
+export const getAllStories = async (): Promise<(StoredStory & { coverImage?: string })[]> => {
     try {
-        return await db.stories.orderBy('updatedAt').reverse().toArray();
+        const stories = await db.stories.orderBy('updatedAt').reverse().toArray();
+        const storiesWithCovers = await Promise.all(
+            stories.map(async (story) => {
+                if (!story.id) return story;
+                const firstChapter = await db.chapters.where('storyId').equals(story.id).first();
+                if (firstChapter?.imageBlob) {
+                    const coverImage = await blobToDataURL(firstChapter.imageBlob);
+                    return { ...story, coverImage };
+                }
+                return story;
+            })
+        );
+        return storiesWithCovers;
     } catch (error) {
         console.error('Failed to get stories:', error);
         return [];
