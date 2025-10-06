@@ -82,37 +82,40 @@ export const checkApiConnection = async (): Promise<boolean> => {
     }
 };
 
-// Story generation function for structured output
-const storyFunction = {
-    name: 'generate_story',
-    description: 'Generate a complete story with title and chapters',
-    parameters: {
-        type: 'object',
-        properties: {
-            title: {
-                type: 'string',
-                description: 'The title of the story'
-            },
-            chapters: {
-                type: 'array',
-                description: 'An array of chapters',
-                items: {
-                    type: 'object',
-                    properties: {
-                        title: {
-                            type: 'string',
-                            description: 'The chapter title'
+// Story generation tool for structured output (OpenRouter format)
+const storyTool = {
+    type: 'function' as const,
+    function: {
+        name: 'generate_story',
+        description: 'Generate a complete story with title and chapters',
+        parameters: {
+            type: 'object',
+            properties: {
+                title: {
+                    type: 'string',
+                    description: 'The title of the story'
+                },
+                chapters: {
+                    type: 'array',
+                    description: 'An array of chapters',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            title: {
+                                type: 'string',
+                                description: 'The chapter title'
+                            },
+                            content: {
+                                type: 'string',
+                                description: 'The full chapter content'
+                            }
                         },
-                        content: {
-                            type: 'string',
-                            description: 'The full chapter content'
-                        }
-                    },
-                    required: ['title', 'content']
+                        required: ['title', 'content']
+                    }
                 }
-            }
-        },
-        required: ['title', 'chapters']
+            },
+            required: ['title', 'chapters']
+        }
     }
 };
 
@@ -135,28 +138,32 @@ export const generateStory = async (
             throw new Error("No API configuration. Please configure your API settings.");
         }
 
-        const fullPrompt = `You are a world-class author. Write a complete story based on the following prompt.
-The story should be engaging and well-structured with multiple chapters.
+        const fullPrompt = `You are a world-class author. Write a concise, engaging story based on the following prompt.
 
 Prompt: "${prompt}"
 Genre: ${genre}
 Target Audience: ${audience}
 
-Generate a title and at least 5 chapters. Each chapter should have a title and substantial content.`;
+Requirements:
+- Generate a compelling title and exactly 5 chapters
+- Each chapter should be 3-8 paragraphs (concise but complete)
+- Focus on key plot points and character development
+- Keep the story engaging but not overly detailed
+- Suitable for ${audience} audience in ${genre} genre`;
 
         const response = await client.chat.completions.create({
             model: getModel(),
             messages: [{ role: 'user', content: fullPrompt }],
-            functions: [storyFunction],
-            function_call: { name: 'generate_story' }
+            tools: [storyTool],
+            tool_choice: { type: 'function', function: { name: 'generate_story' } }
         });
 
-        const functionCall = response.choices[0]?.message.function_call;
-        if (!functionCall || !functionCall.arguments) {
+        const toolCall = response.choices[0]?.message.tool_calls?.[0];
+        if (!toolCall || toolCall.type !== 'function' || !toolCall.function?.arguments) {
             throw new Error("No story generated");
         }
 
-        const parsedStory = JSON.parse(functionCall.arguments) as {
+        const parsedStory = JSON.parse(toolCall.function.arguments) as {
             title: string;
             chapters: { title: string; content: string }[];
         };
@@ -216,20 +223,41 @@ Chapter Text: "${chapterContent}"`
         // Generate the actual image using OpenRouter's image model
         const imageModel = AI_PROVIDER.imageModel;
         
-        // Use OpenRouter's chat completions endpoint for image generation
+        // Use OpenRouter's chat completions endpoint for image generation with modalities
         const imageResponse = await client.chat.completions.create({
             model: imageModel,
             messages: [{
                 role: 'user',
                 content: finalPrompt
             }],
-            max_tokens: 1
-        });
+            modalities: ['image', 'text'] as any,
+            max_tokens: 1500
+        } as any);
         
         // Extract the base64 image from the response
-        const imageContent = imageResponse.choices[0]?.message?.content;
-        if (imageContent && imageContent.startsWith('data:image/')) {
-            return imageContent;
+        const message = (imageResponse.choices[0]?.message as any);
+        console.log('Image response message:', JSON.stringify(message, null, 2));
+        
+        if (message?.images && message.images.length > 0) {
+            const imageData = message.images[0];
+            console.log('Image data:', imageData);
+            
+            // Handle different possible response formats
+            if (typeof imageData === 'string') {
+                return imageData;
+            } else if (imageData?.image_url?.url) {
+                // OpenRouter format: {type: 'image_url', image_url: {url: 'data:image/...'}}
+                return imageData.image_url.url;
+            } else if (imageData?.url) {
+                return imageData.url;
+            } else if (imageData?.data) {
+                return imageData.data;
+            } else if (imageData?.base64) {
+                return `data:image/png;base64,${imageData.base64}`;
+            }
+            
+            console.error('Unexpected image data format:', imageData);
+            throw new Error("Invalid image data format received");
         }
         
         throw new Error("No image data received from provider");

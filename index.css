@@ -94,6 +94,7 @@
     fill: hsl(var(--foreground)) !important;
   }
   
+  
   .ql-toolbar button:hover {
     background: hsl(var(--accent)) !important;
   }

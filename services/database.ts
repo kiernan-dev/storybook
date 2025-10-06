@@ -62,7 +62,13 @@ export const dataURLToBlob = (dataURL: string): Blob => {
 };
 
 // Convert URL or data URL to Blob
-export const urlToBlob = async (url: string): Promise<Blob> => {
+export const urlToBlob = async (url: any): Promise<Blob> => {
+    // Handle non-string inputs
+    if (!url || typeof url !== 'string') {
+        console.error('urlToBlob received non-string input:', url);
+        throw new Error('Invalid URL format - expected string but received: ' + typeof url);
+    }
+    
     // If it's a data URL, use the existing function
     if (url.startsWith('data:')) {
         return dataURLToBlob(url);

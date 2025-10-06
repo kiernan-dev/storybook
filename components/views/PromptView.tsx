@@ -63,10 +63,12 @@ const PromptView: React.FC = () => {
                 audience,
             };
             dispatch({ type: 'SET_STORY', payload: fullStory });
+            dispatch({ type: 'SET_LOADING', payload: false });
             transitionToStep(AppStep.EDITING);
         } catch (err) {
             const error = err instanceof Error ? err.message : 'An unknown error occurred';
             dispatch({ type: 'SET_ERROR', payload: error });
+            dispatch({ type: 'SET_LOADING', payload: false });
         }
     };
 

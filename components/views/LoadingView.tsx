@@ -19,7 +19,7 @@ const LoadingView: React.FC = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentTextIndex(prev => (prev + 1) % loadingTexts.length);
-        }, 2000);
+        }, 8000); // Change text every 4 shimmer cycles (4 × 2s = 8s)
 
         return () => clearInterval(interval);
     }, []);

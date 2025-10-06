@@ -9,7 +9,7 @@ import { generateImageForChapter } from '../../services/aiService';
 import { isDemoMode } from '../../services/mockData';
 import Spinner from '../ui/Spinner';
 
-const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
+const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: string, title: string) => void }> = ({ chapter, onImageClick }) => {
     const { state, dispatch, saveCurrentStory } = useStory();
     const originalContentRef = useRef(chapter.content);
     const [customImagePrompt, setCustomImagePrompt] = useState('');
@@ -107,16 +107,22 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
                     />
                 </div>
                 
-                {/* Image area - more compact for mobile */}
+                {/* Image area - larger and more square for 1024x1024 images */}
                 <div className="order-1 lg:order-2 flex flex-col space-y-3">
-                    <div className="w-full h-32 sm:h-40 lg:h-48 lg:aspect-square rounded-lg border border-dashed flex items-center justify-center bg-muted/40">
+                    <div className="w-full h-48 sm:h-56 lg:h-72 aspect-square rounded-lg border border-dashed flex items-center justify-center bg-muted/40">
                         {chapter.isGeneratingImage ? (
                             <div className="flex flex-col items-center text-muted-foreground">
                                 <Spinner className="h-6 w-6"/>
                                 <p className="mt-2 text-xs">Illustrating...</p>
                             </div>
                         ) : chapter.imageUrl ? (
-                            <img src={chapter.imageUrl} alt={`Illustration for ${chapter.title}`} className="object-cover w-full h-full rounded-lg" />
+                            <img 
+                                src={chapter.imageUrl} 
+                                alt={`Illustration for ${chapter.title}`} 
+                                className="object-cover w-full h-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                                onClick={() => onImageClick(chapter.imageUrl!, chapter.title)}
+                                title="Click to view full size"
+                            />
                         ) : (
                             <div className="text-center text-muted-foreground">
                                 <p className="text-xs">No image yet</p>
@@ -146,6 +152,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 };
@@ -155,6 +162,15 @@ const EditorView: React.FC = () => {
     const { state } = useStory();
     const { transitionToStep, isTransitioning } = useStepTransition();
     const [activeChapterId, setActiveChapterId] = useState<string | null>(state.story?.chapters[0]?.id || null);
+    const [overlayImage, setOverlayImage] = useState<{ url: string; title: string } | null>(null);
+
+    const handleImageClick = (imageUrl: string, title: string) => {
+        setOverlayImage({ url: imageUrl, title });
+    };
+
+    const closeOverlay = () => {
+        setOverlayImage(null);
+    };
 
     if (!state.story) {
         return <p>Loading story...</p>;
@@ -167,7 +183,8 @@ const EditorView: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col space-y-4">
+        <>
+            <div className="flex flex-col space-y-4">
             {/* Mobile-first header with story title and preview button */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-card/50 rounded-lg border border-border/20">
                 <h2 className="text-xl font-bold">{state.story.title}</h2>
@@ -202,12 +219,110 @@ const EditorView: React.FC = () => {
             {/* Mobile-optimized editor content */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/20 w-full overflow-hidden">
                 {activeChapter ? (
-                    <ChapterEditor key={activeChapter.id} chapter={activeChapter} />
+                    <ChapterEditor key={activeChapter.id} chapter={activeChapter} onImageClick={handleImageClick} />
                 ) : (
                     <p>Select a chapter to begin editing.</p>
                 )}
             </div>
         </div>
+
+        {/* Image Overlay - Separate from page content */}
+        {overlayImage && (
+            <div 
+                className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col"
+                onClick={closeOverlay}
+            >
+                {/* Header */}
+                <div className="flex justify-between items-center px-4 py-4 flex-shrink-0">
+                    <h3 className="text-white text-lg font-medium truncate">
+                        {overlayImage.title}
+                    </h3>
+                    <button
+                        onClick={closeOverlay}
+                        className="text-white/70 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+                        title="Close (ESC)"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Image */}
+                <div className="flex-1 flex items-center justify-center px-4 min-h-0">
+                    <div className="w-full h-full max-w-4xl flex items-center justify-center">
+                        <img 
+                            src={overlayImage.url} 
+                            alt={`Full size illustration for ${overlayImage.title}`}
+                            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex justify-center gap-3 px-4 py-6 bg-gradient-to-t from-black/50 to-transparent flex-shrink-0">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const link = document.createElement('a');
+                            link.href = overlayImage.url;
+                            link.download = `${overlayImage.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_illustration.png`;
+                            link.click();
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download
+                    </button>
+                    <button
+                        onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                                const response = await fetch(overlayImage.url);
+                                const blob = await response.blob();
+                                const dataUrl = await new Promise<string>((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => resolve(reader.result as string);
+                                    reader.readAsDataURL(blob);
+                                });
+                                
+                                const newWindow = window.open();
+                                if (newWindow) {
+                                    newWindow.document.write(`
+                                        <!DOCTYPE html>
+                                        <html>
+                                        <head>
+                                            <title>${overlayImage.title}</title>
+                                            <style>
+                                                body { margin: 0; padding: 20px; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                                                img { max-width: 100%; max-height: 100vh; object-fit: contain; border-radius: 8px; }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <img src="${dataUrl}" alt="${overlayImage.title}" />
+                                        </body>
+                                        </html>
+                                    `);
+                                    newWindow.document.close();
+                                }
+                            } catch (error) {
+                                console.error('Failed to open image in new tab:', error);
+                            }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open in New Tab
+                    </button>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 
