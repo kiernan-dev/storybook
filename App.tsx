@@ -9,6 +9,7 @@ import PromptView from './components/views/PromptView';
 import EditorView from './components/views/EditorView';
 import PreviewView from './components/views/PreviewView';
 import LoadingView from './components/views/LoadingView';
+import { ToastProvider, ToastContainer } from './components/ui/Toast';
 
 const AppContent: React.FC = () => {
     const { state } = useStory();
@@ -58,7 +59,7 @@ const AppContent: React.FC = () => {
 
     const themeStyles: { [key: string]: React.CSSProperties } = {
         'flash-era': {
-            backgroundImage: 'linear-gradient(135deg, hsl(220 60% 18%) 0%, hsl(210 50% 22%) 25%, hsl(230 40% 20%) 50%, hsl(200 60% 25%) 75%, hsl(220 50% 18%) 100%)',
+            backgroundImage: 'linear-gradient(135deg, hsl(220 60% 28%) 0%, hsl(210 50% 32%) 25%, hsl(230 40% 30%) 50%, hsl(200 60% 35%) 75%, hsl(220 50% 28%) 100%)',
             backgroundAttachment: 'fixed',
         },
         'flash-era-light': {
@@ -98,9 +99,12 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <StoryProvider>
-            <AppContent />
-        </StoryProvider>
+        <ToastProvider>
+            <StoryProvider>
+                <AppContent />
+                <ToastContainer />
+            </StoryProvider>
+        </ToastProvider>
     );
 };
 

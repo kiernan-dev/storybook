@@ -8,9 +8,11 @@ import RichTextEditor from '../ui/RichTextEditor';
 import { generateImageForChapter } from '../../services/aiService';
 import { isDemoMode } from '../../services/mockData';
 import Spinner from '../ui/Spinner';
+import { useToast } from '../ui/Toast';
 
 const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: string, title: string) => void }> = ({ chapter, onImageClick }) => {
     const { state, dispatch, saveCurrentStory } = useStory();
+    const { addToast } = useToast();
     const originalContentRef = useRef(chapter.content);
     const [customImagePrompt, setCustomImagePrompt] = useState('');
 
@@ -62,34 +64,33 @@ const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: strin
         }
     };
 
-    const handleManualSave = async () => {
+    const handleManualSave = async (isProgressSave = false) => {
         try {
             await saveCurrentStory(state.story);
-            console.log('Manual save completed');
+            addToast({
+                type: 'success',
+                title: isProgressSave ? 'Progress saved' : 'Chapter saved',
+                description: isProgressSave ? 'Your story progress has been saved' : 'Your changes have been saved',
+                duration: 2500
+            });
         } catch (error) {
             console.error('Manual save failed:', error);
+            addToast({
+                type: 'error',
+                title: 'Save failed',
+                description: 'Unable to save your changes. Please try again.',
+                duration: 5000
+            });
         }
     };
-
-    const handleCopyText = () => {
-        navigator.clipboard.writeText(chapter.content).then(() => {
-            console.log('Chapter content copied to clipboard');
-        }).catch(err => {
-            console.error('Failed to copy text:', err);
-        });
-    };
-
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">{chapter.title}</h3>
                 <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={handleCopyText}>
-                        Copy Text
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleManualSave}>
-                        Save
+                    <Button variant="outline" size="sm" onClick={() => handleManualSave(true)}>
+                        Save Progress
                     </Button>
                 </div>
             </div>
@@ -97,7 +98,7 @@ const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: strin
             {/* Mobile-optimized layout */}
             <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4">
                 {/* Content editor */}
-                <div className="order-2 lg:order-1 w-full overflow-hidden">
+                <div className="order-2 lg:order-1 w-full overflow-hidden space-y-3">
                     <RichTextEditor
                         value={chapter.content}
                         onChange={handleContentChange}
@@ -105,6 +106,11 @@ const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: strin
                         className="w-full"
                         placeholder="Edit your chapter content..."
                     />
+                    <div className="flex justify-end p-1">
+                        <Button variant="outline" size="sm" onClick={() => handleManualSave(false)}>
+                            Save
+                        </Button>
+                    </div>
                 </div>
                 
                 {/* Image area - larger and more square for 1024x1024 images */}

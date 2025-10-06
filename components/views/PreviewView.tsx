@@ -6,10 +6,12 @@ import { isDemoMode } from '../../services/mockData';
 import { AppStep } from '../../types';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
+import { useToast } from '../ui/Toast';
 
 const PreviewView: React.FC = () => {
     const { state, saveCurrentStory } = useStory();
     const { transitionToStep, isTransitioning } = useStepTransition();
+    const { addToast } = useToast();
     const [isSaving, setIsSaving] = useState(false);
 
     if (!state.story) {
@@ -38,10 +40,21 @@ const PreviewView: React.FC = () => {
         try {
             const storyId = await saveCurrentStory();
             if (storyId) {
-                alert(`Story "${state.story?.title}" saved successfully!`);
+                addToast({
+                    type: 'success',
+                    title: 'Story saved!',
+                    description: `"${state.story?.title}" has been saved successfully`,
+                    duration: 4000
+                });
             }
         } catch (error) {
             console.error('Failed to save story:', error);
+            addToast({
+                type: 'error',
+                title: 'Save failed',
+                description: 'Unable to save your story. Please try again.',
+                duration: 5000
+            });
         } finally {
             setIsSaving(false);
         }

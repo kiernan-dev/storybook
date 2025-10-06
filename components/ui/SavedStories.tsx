@@ -5,6 +5,7 @@ import { AppStep } from '../../types';
 import Button from './Button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './Card';
 import ConfirmationModal from './ConfirmationModal';
+import { useToast } from './Toast';
 
 interface SavedStoriesProps {
     onClose: () => void;
@@ -21,6 +22,7 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
         storyTitle?: string;
     } | null>(null);
     const { dispatch } = useStory();
+    const { addToast } = useToast();
 
     useEffect(() => {
         loadStories();
@@ -43,10 +45,22 @@ const SavedStories: React.FC<SavedStoriesProps> = ({ onClose }) => {
             if (story) {
                 dispatch({ type: 'SET_STORY', payload: story });
                 dispatch({ type: 'SET_STEP', payload: AppStep.PREVIEW });
+                addToast({
+                    type: 'success',
+                    title: 'Story loaded',
+                    description: `"${story.title}" has been loaded successfully`,
+                    duration: 3000
+                });
                 onClose();
             }
         } catch (error) {
             console.error('Failed to load story:', error);
+            addToast({
+                type: 'error',
+                title: 'Load failed',
+                description: 'Unable to load the story. Please try again.',
+                duration: 5000
+            });
         }
     };
 

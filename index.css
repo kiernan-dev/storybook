@@ -86,14 +86,41 @@
     font-style: italic !important;
   }
   
-  .ql-toolbar .ql-stroke {
-    stroke: hsl(var(--foreground)) !important;
+  /* Dark theme Quill overrides */
+  .flash-era .ql-snow .ql-stroke {
+    stroke: hsl(180 100% 85%) !important;
   }
   
-  .ql-toolbar .ql-fill {
-    fill: hsl(var(--foreground)) !important;
+  .flash-era .ql-snow .ql-fill,
+  .flash-era .ql-snow .ql-stroke.ql-fill {
+    fill: hsl(180 100% 85%) !important;
   }
   
+  .flash-era .ql-snow .ql-picker-label {
+    color: hsl(180 100% 85%) !important;
+  }
+  
+  .flash-era .ql-snow .ql-picker.ql-header .ql-picker-label::before {
+    color: hsl(180 100% 85%) !important;
+  }
+  
+  /* Light theme Quill overrides */
+  .flash-era-light .ql-snow .ql-stroke {
+    stroke: hsl(200 100% 15%) !important;
+  }
+  
+  .flash-era-light .ql-snow .ql-fill,
+  .flash-era-light .ql-snow .ql-stroke.ql-fill {
+    fill: hsl(200 100% 15%) !important;
+  }
+  
+  .flash-era-light .ql-snow .ql-picker-label {
+    color: hsl(200 100% 15%) !important;
+  }
+  
+  .flash-era-light .ql-snow .ql-picker.ql-header .ql-picker-label::before {
+    color: hsl(200 100% 15%) !important;
+  }
   
   .ql-toolbar button:hover {
     background: hsl(var(--accent)) !important;

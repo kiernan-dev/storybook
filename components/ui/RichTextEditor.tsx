@@ -39,7 +39,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             modules: {
                 toolbar: [
                     [{ 'header': [2, 3, false] }],
-                    ['bold', 'italic', 'underline'],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     [{ 'align': [] }],
                     ['blockquote'],
@@ -47,8 +46,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 ]
             },
             formats: [
-                'header', 'bold', 'italic', 'underline',
-                'list', 'align', 'blockquote'
+                'header', 'list', 'align', 'blockquote'
             ]
         });
         quillRef.current = quill;
@@ -59,12 +57,16 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             quill.root.innerHTML = htmlContent;
         }
 
-        // Add event listeners
+        // Add event listeners - debounced to avoid excessive updates
+        let changeTimeout: NodeJS.Timeout;
         const textChangeHandler = () => {
             if (quill) {
-                const html = quill.root.innerHTML;
-                const plainText = htmlToText(html);
-                onChange(plainText);
+                clearTimeout(changeTimeout);
+                changeTimeout = setTimeout(() => {
+                    const html = quill.root.innerHTML;
+                    const plainText = htmlToText(html);
+                    onChange(plainText);
+                }, 750); // Wait 750ms after user stops typing
             }
         };
         quill.on('text-change', textChangeHandler);
@@ -78,6 +80,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
         // Cleanup function: destroy everything inside the wrapper
         return () => {
+            clearTimeout(changeTimeout);
             if (wrapperRef.current) {
                 wrapperRef.current.innerHTML = '';
             }
