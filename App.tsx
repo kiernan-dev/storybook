@@ -58,11 +58,11 @@ const AppContent: React.FC = () => {
 
     const themeStyles: { [key: string]: React.CSSProperties } = {
         'flash-era': {
-            backgroundImage: 'linear-gradient(135deg, hsl(270 80% 8%) 0%, hsl(280 70% 12%) 25%, hsl(260 60% 10%) 50%, hsl(290 80% 15%) 75%, hsl(270 70% 8%) 100%)',
+            backgroundImage: 'linear-gradient(135deg, hsl(220 80% 8%) 0%, hsl(210 70% 12%) 25%, hsl(230 60% 10%) 50%, hsl(200 80% 15%) 75%, hsl(220 70% 8%) 100%)',
             backgroundAttachment: 'fixed',
         },
         'flash-era-light': {
-            backgroundImage: 'linear-gradient(135deg, hsl(270 30% 98%) 0%, hsl(280 60% 85%) 40%, hsl(260 60% 80%) 50%, hsl(290 60% 85%) 60%, hsl(270 30% 98%) 100%)',
+            backgroundImage: 'linear-gradient(135deg, hsl(220 30% 98%) 0%, hsl(210 60% 85%) 40%, hsl(230 60% 80%) 50%, hsl(200 60% 85%) 60%, hsl(220 30% 98%) 100%)',
             backgroundAttachment: 'fixed',
         },
     };
