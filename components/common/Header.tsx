@@ -4,28 +4,32 @@ import { APP_NAME } from '../../constants';
 import ThemeToggle from '../ui/ThemeToggle';
 import ApiStatus from '../ui/ApiStatus';
 import SavedStories from '../ui/SavedStories';
+import ApiSettings from '../ui/ApiSettings';
+import DemoBanner from '../ui/DemoBanner';
 import Button from '../ui/Button';
-import { checkApiConnection } from '../../services/geminiService';
+import { checkApiConnection } from '../../services/aiService';
+import { isDemoMode } from '../../services/mockData';
 
 const Header: React.FC = () => {
     const [isApiConnected, setIsApiConnected] = useState<boolean>(false);
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [showSavedStories, setShowSavedStories] = useState<boolean>(false);
+    const [showApiSettings, setShowApiSettings] = useState<boolean>(false);
     const [showMobileMenu, setShowMobileMenu] = useState<boolean>(false);
 
-    useEffect(() => {
-        const checkConnection = async () => {
-            setIsChecking(true);
-            try {
-                const connected = await checkApiConnection();
-                setIsApiConnected(connected);
-            } catch (error) {
-                setIsApiConnected(false);
-            } finally {
-                setIsChecking(false);
-            }
-        };
+    const checkConnection = async () => {
+        setIsChecking(true);
+        try {
+            const connected = await checkApiConnection();
+            setIsApiConnected(connected);
+        } catch (error) {
+            setIsApiConnected(false);
+        } finally {
+            setIsChecking(false);
+        }
+    };
 
+    useEffect(() => {
         checkConnection();
         
         // Check API status every 5 minutes
@@ -35,7 +39,15 @@ const Header: React.FC = () => {
 
     return (
     <>
-        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        {/* Demo Mode Banner */}
+        {isDemoMode() && (
+            <DemoBanner 
+                onOpenSettings={() => setShowApiSettings(true)}
+                className="sticky top-0 z-50"
+            />
+        )}
+        
+        <header className={`sticky z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isDemoMode() ? 'top-[60px]' : 'top-0'}`}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center space-x-6">
@@ -44,11 +56,19 @@ const Header: React.FC = () => {
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
                             <span className="font-bold text-lg">{APP_NAME}</span>
                         </a>
-                        {!isChecking && <ApiStatus isConnected={isApiConnected} />}
+                        {!isChecking && !isDemoMode() && <ApiStatus isConnected={isApiConnected} />}
                     </div>
                     
                     {/* Desktop menu */}
                     <div className="hidden md:flex items-center space-x-4">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setShowApiSettings(true)}
+                            className="text-sm font-medium"
+                        >
+                            Settings
+                        </Button>
                         <Button 
                             variant="ghost" 
                             size="sm" 
@@ -84,6 +104,17 @@ const Header: React.FC = () => {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => {
+                                setShowApiSettings(true);
+                                setShowMobileMenu(false);
+                            }}
+                            className="w-full justify-start text-sm font-medium"
+                        >
+                            Settings
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
                                 setShowSavedStories(true);
                                 setShowMobileMenu(false);
                             }}
@@ -102,6 +133,17 @@ const Header: React.FC = () => {
         
         {showSavedStories && (
             <SavedStories onClose={() => setShowSavedStories(false)} />
+        )}
+        
+        {showApiSettings && (
+            <ApiSettings 
+                isOpen={showApiSettings} 
+                onClose={() => {
+                    setShowApiSettings(false);
+                    // Recheck connection after settings change
+                    checkConnection();
+                }} 
+            />
         )}
     </>
     );

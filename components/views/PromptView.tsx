@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
-import { generateStory } from '../../services/geminiService';
+import { generateStory } from '../../services/aiService';
+import { isDemoMode } from '../../services/mockData';
 import { AppStep, Genre, Audience } from '../../types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import Button from '../ui/Button';
@@ -18,6 +19,8 @@ const PromptView: React.FC = () => {
     const [prompt, setPrompt] = useState('');
     const [genre, setGenre] = useState<Genre>(Genre.FANTASY);
     const [audience, setAudience] = useState<Audience>(Audience.CHILDREN);
+    const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
+    const [isDemo, setIsDemo] = useState(isDemoMode());
 
     const handleGenreChange = (selectedGenre: Genre) => {
         setGenre(selectedGenre);
@@ -33,8 +36,20 @@ const PromptView: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Clear previous errors
+        setFieldErrors({});
+        dispatch({ type: 'SET_ERROR', payload: null });
+        
+        // Validate form
+        const errors: {[key: string]: string} = {};
+        
         if (!prompt.trim()) {
-            dispatch({ type: 'SET_ERROR', payload: 'Prompt cannot be empty.' });
+            errors.prompt = 'Please enter a story idea or prompt to continue';
+        }
+        
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
@@ -69,12 +84,20 @@ const PromptView: React.FC = () => {
                     <CardContent className="space-y-8 p-8">
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
-                                <label htmlFor="prompt" className="text-base font-medium block">Story Prompt</label>
+                                <label htmlFor="prompt" className={`text-base font-medium block ${fieldErrors.prompt ? 'text-destructive' : ''}`}>
+                                    Story Prompt {fieldErrors.prompt && <span className="text-destructive">*</span>}
+                                </label>
                                 <div className="mt-4">
                                     <MagicPromptButton
                                         genre={genre}
                                         audience={audience}
-                                        onPromptGenerated={setPrompt}
+                                        onPromptGenerated={(newPrompt) => {
+                                            setPrompt(newPrompt);
+                                            // Clear error when user adds content
+                                            if (fieldErrors.prompt) {
+                                                setFieldErrors(prev => ({ ...prev, prompt: '' }));
+                                            }
+                                        }}
                                         disabled={state.isLoading}
                                     />
                                 </div>
@@ -83,11 +106,29 @@ const PromptView: React.FC = () => {
                                 id="prompt"
                                 placeholder="e.g., A brave knight who is afraid of the dark..."
                                 value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
+                                onChange={(e) => {
+                                    setPrompt(e.target.value);
+                                    // Clear error when user starts typing
+                                    if (fieldErrors.prompt && e.target.value.trim()) {
+                                        setFieldErrors(prev => ({ ...prev, prompt: '' }));
+                                    }
+                                }}
                                 rows={6}
                                 disabled={state.isLoading}
-                                className="text-base resize-none"
+                                className={`text-base resize-none ${
+                                    fieldErrors.prompt 
+                                        ? 'border-destructive focus:border-destructive focus:ring-destructive/20 bg-destructive/5' 
+                                        : ''
+                                }`}
                             />
+                            {fieldErrors.prompt && (
+                                <div className="flex items-center gap-2 text-sm text-destructive">
+                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    {fieldErrors.prompt}
+                                </div>
+                            )}
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -128,11 +169,6 @@ const PromptView: React.FC = () => {
                             </div>
                         </div>
                         
-                        {state.error && (
-                            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                                <p className="text-sm text-destructive font-medium">{state.error}</p>
-                            </div>
-                        )}
                         
                         <div className="pt-4">
                             <Button 
@@ -142,10 +178,11 @@ const PromptView: React.FC = () => {
                             >
                                 {state.isLoading ? (
                                     <>
-                                        <Spinner className="mr-3 h-5 w-5" /> Generating Story...
+                                        <Spinner className="mr-3 h-5 w-5" /> 
+                                        {isDemoMode() ? 'Loading Demo Story...' : 'Generating Story...'}
                                     </>
                                 ) : (
-                                    'Generate Story'
+                                    isDemoMode() ? 'View Demo Story' : 'Generate Story'
                                 )}
                             </Button>
                         </div>

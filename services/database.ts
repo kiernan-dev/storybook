@@ -47,7 +47,11 @@ export const db = new StoryBookDB();
 // Convert base64 data URL to Blob
 export const dataURLToBlob = (dataURL: string): Blob => {
     const arr = dataURL.split(',');
-    const mime = arr[0].match(/:(.*?);/)![1];
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) {
+        throw new Error('Invalid data URL format');
+    }
+    const mime = mimeMatch[1];
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
@@ -55,6 +59,27 @@ export const dataURLToBlob = (dataURL: string): Blob => {
         u8arr[n] = bstr.charCodeAt(n);
     }
     return new Blob([u8arr], { type: mime });
+};
+
+// Convert URL or data URL to Blob
+export const urlToBlob = async (url: string): Promise<Blob> => {
+    // If it's a data URL, use the existing function
+    if (url.startsWith('data:')) {
+        return dataURLToBlob(url);
+    }
+    
+    // If it's a regular URL, fetch it
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.statusText}`);
+        }
+        return await response.blob();
+    } catch (error) {
+        console.warn('Failed to fetch image for storage, saving URL instead:', error);
+        // Return a text blob with the URL as fallback
+        return new Blob([url], { type: 'text/plain' });
+    }
 };
 
 // Convert Blob to base64 data URL
@@ -104,7 +129,7 @@ export const saveStory = async (story: Story): Promise<number> => {
                 content: chapter.content,
                 imagePrompt: chapter.imagePrompt,
                 isGeneratingImage: chapter.isGeneratingImage,
-                imageBlob: chapter.imageUrl ? dataURLToBlob(chapter.imageUrl) : undefined,
+                imageBlob: chapter.imageUrl ? await urlToBlob(chapter.imageUrl) : undefined,
             };
             await db.chapters.add(storedChapter);
         }

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useStory } from '../../hooks/useStory';
 import { useStepTransition } from '../../hooks/useStepTransition';
+import { isDemoMode } from '../../services/mockData';
 import { AppStep } from '../../types';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
@@ -25,7 +26,7 @@ const PreviewView: React.FC = () => {
     const { title, chapters } = state.story;
 
     const handleDownload = () => {
-        alert("PDF generation is a complex feature. In a real application, this would trigger a KDP-compliant PDF download.");
+        window.print();
     };
     
     const handleBackToEdit = () => {
@@ -47,9 +48,43 @@ const PreviewView: React.FC = () => {
     };
 
     return (
+        <>
+            {/* Print-only styles */}
+            <style>{`
+                @media print {
+                    * {
+                        visibility: hidden;
+                    }
+                    
+                    [data-book-content],
+                    [data-book-content] * {
+                        visibility: visible;
+                    }
+                    
+                    [data-book-content] {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        margin: 0;
+                        padding: 0;
+                        background: white;
+                        box-shadow: none;
+                        border: none;
+                        border-radius: 0;
+                    }
+                    
+                    html, body {
+                        margin: 0;
+                        padding: 0;
+                        background: white;
+                    }
+                }
+            `}</style>
+            
         <div className="min-h-screen">
             {/* Fixed Header with better contrast */}
-            <div className="sticky top-0 z-10 backdrop-blur-md bg-card/80 border-b border-border shadow-sm">
+            <div className="sticky top-0 z-10 backdrop-blur-md bg-card/80 border-b border-border shadow-sm print:hidden">
                 <div className="max-w-4xl mx-auto px-4 py-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Book Preview</h1>
@@ -87,12 +122,19 @@ const PreviewView: React.FC = () => {
             </div>
 
             {/* E-book Style Content */}
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <div className="bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-border/50">
+            <div className="max-w-4xl mx-auto px-4 py-8 print:max-w-none print:mx-0 print:px-0 print:py-0">
+                <div className="bg-card/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border border-border/50 print:bg-white print:shadow-none print:rounded-none print:border-0" data-book-content>
                     
                     {/* Cover Page */}
-                    <div className="relative p-12 text-center bg-muted/50 min-h-[70vh] flex flex-col justify-center">
+                    <div className="relative p-12 text-center bg-muted/50 min-h-[70vh] flex flex-col justify-center print:break-inside-avoid">
                         <div className="relative z-10">
+                            {isDemoMode() && (
+                                <div className="mb-6 inline-block px-4 py-2 bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-lg">
+                                    <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                        📖 DEMO CONTENT - Sample Story
+                                    </span>
+                                </div>
+                            )}
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-foreground mb-8 leading-tight">
                                 {title}
                             </h1>
@@ -114,8 +156,8 @@ const PreviewView: React.FC = () => {
 
                     {/* Chapters */}
                     {chapters.map((chapter, index) => (
-                        <div key={chapter.id} className="border-t border-gray-200/50 dark:border-gray-700/50">
-                            <article className="p-8 sm:p-12 max-w-none">
+                        <div key={chapter.id} className="border-t border-gray-200/50 dark:border-gray-700/50 print:border-t-0 print:break-before-page">
+                            <article className="p-8 sm:p-12 max-w-none print:p-6 print:break-inside-avoid">
                                 {/* Chapter Header */}
                                 <header className="mb-8 text-center">
                                     <div className="inline-block px-4 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mb-4">
@@ -168,6 +210,7 @@ const PreviewView: React.FC = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

@@ -48,7 +48,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             },
             formats: [
                 'header', 'bold', 'italic', 'underline',
-                'list', 'bullet', 'align', 'blockquote'
+                'list', 'align', 'blockquote'
             ]
         });
         quillRef.current = quill;

@@ -5,7 +5,8 @@ import { useStepTransition } from '../../hooks/useStepTransition';
 import { Chapter, AppStep } from '../../types';
 import Button from '../ui/Button';
 import RichTextEditor from '../ui/RichTextEditor';
-import { generateImageForChapter } from '../../services/geminiService';
+import { generateImageForChapter } from '../../services/aiService';
+import { isDemoMode } from '../../services/mockData';
 import Spinner from '../ui/Spinner';
 
 const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
@@ -131,8 +132,17 @@ const ChapterEditor: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
                             className="w-full px-3 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                         />
                         <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} size="sm" className="w-full">
-                            {chapter.isGeneratingImage ? <><Spinner className="mr-2 h-3 w-3" /> Generating...</> : "Generate Illustration"}
+                            {chapter.isGeneratingImage ? (
+                                <><Spinner className="mr-2 h-3 w-3" /> {isDemoMode() ? 'Loading Demo...' : 'Generating...'}</>
+                            ) : (
+                                isDemoMode() ? "Load Demo Image" : "Generate Illustration"
+                            )}
                         </Button>
+                        {isDemoMode() && (
+                            <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                                ⚠️ Demo mode: Sample image will be loaded
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
