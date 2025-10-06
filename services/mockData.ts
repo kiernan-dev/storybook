@@ -3,16 +3,16 @@ import { textToHtml } from '../utils/textFormatter';
 
 // Demo images for storybook illustrations
 const DEMO_IMAGES = [
-    '/demo-images/fantasy_1.png',      // Luna finding the crystal
-    '/demo-images/fantasy_2.png',      // Tiny dragon appearing
-    '/demo-images/fantasy_3.png',      // Girl and dragon with map
-    '/demo-images/fantasy_4.png',      // Phoenix in the sky
-    '/demo-images/fantasy_5.png',      // Girl with full-sized dragon
-    '/demo-images/mystery_1.png',      // Archivist with empty cases
-    '/demo-images/mystery_2.png',      // Documents on desk
-    '/demo-images/mystery_3.png',      // Woman with flashlight
-    '/demo-images/mystery_4.png',      // Two people in secret room
-    '/demo-images/mystery_5.png'       // Archivists at computers
+    'demo-images/fantasy_1.png',      // Luna finding the crystal
+    'demo-images/fantasy_2.png',      // Tiny dragon appearing
+    'demo-images/fantasy_3.png',      // Girl and dragon with map
+    'demo-images/fantasy_4.png',      // Phoenix in the sky
+    'demo-images/fantasy_5.png',      // Girl with full-sized dragon
+    'demo-images/mystery_1.png',      // Archivist with empty cases
+    'demo-images/mystery_2.png',      // Documents on desk
+    'demo-images/mystery_3.png',      // Woman with flashlight
+    'demo-images/mystery_4.png',      // Two people in secret room
+    'demo-images/mystery_5.png'       // Archivists at computers
 ];
 
 const MOCK_STORIES: Record<string, Story> = {
