@@ -130,11 +130,14 @@ const ChapterEditor: React.FC<{ chapter: Chapter; onImageClick: (imageUrl: strin
                         )}
                     </div>
                     <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                            💡 Leave blank to automatically generate an image prompt from your chapter content
+                        </p>
                         <textarea
                             value={customImagePrompt}
                             onChange={(e) => setCustomImagePrompt(e.target.value)}
-                            placeholder="Add specific details for the image (e.g., character descriptions, colors, artistic style, mood, lighting...)&#10;&#10;Example: 'with bright golden sunlight, showing the character's surprised expression, in watercolor style'"
-                            rows={3}
+                            placeholder='Describe the scene you want illustrated... (e.g., "a cozy library at sunset" or "children playing in a magical forest")'
+                            rows={4}
                             className="w-full px-3 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                         />
                         <Button onClick={handleGenerateImage} disabled={chapter.isGeneratingImage} size="sm" className="w-full">
