@@ -22,6 +22,12 @@ export const AI_PROVIDER = {
 
 // Storage helpers
 export const getApiKey = (): string | null => {
+    // Check for environment variable first
+    const envKey = (import.meta as any).env?.VITE_OPENROUTER_API_KEY;
+    if (envKey) {
+        return envKey;
+    }
+    
     return localStorage.getItem('ai_api_key');
 };
 
