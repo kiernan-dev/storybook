@@ -1,4 +1,5 @@
 import { Story, Chapter, Genre, Audience } from '../types';
+import { getApiKey } from './aiService';
 import { textToHtml } from '../utils/textFormatter';
 
 // Demo images for storybook illustrations
@@ -169,5 +170,5 @@ export const getMockEnhancedPrompt = async (currentPrompt: string): Promise<stri
 };
 
 export const isDemoMode = (): boolean => {
-    return !localStorage.getItem('ai_api_key');
+    return !getApiKey();
 };
